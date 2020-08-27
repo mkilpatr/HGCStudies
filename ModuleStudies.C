@@ -14,13 +14,16 @@ using namespace std;
 using namespace EstTools;
 using json = nlohmann::json;
 
+TString outputDir = "";
+TString baseDir = "moduleTolerances";
+vector<Color_t> colors;
+
+
 void print2DPlots(TH2Poly *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb", double width = 0.2);
 void moduleTolerances();
 #endif
 
 void ModuleStudies(){
-  SetTDRStyle();
-
   moduleTolerances();
 }
 
@@ -76,7 +79,7 @@ double integrateFrom(TH1D* h, double value = 0.){
 vector<double> findHighXbin(TH1D* h){
   double mod = -999., belowZero = 0., width = 0.;;
   vector<double> output;
-  for(unsigned bin = h->GetNbinsX() + 1; bin > 0; --bin){
+  for(auto bin = h->GetNbinsX() + 1; bin > 0; --bin){
     mod = h->GetBinContent(bin) > 0 ? h->GetBinLowEdge(bin) : mod;
     if(mod != -999.){
       width = h->GetBinWidth(bin);
@@ -94,7 +97,7 @@ vector<double> findHighXbin(TH1D* h){
 vector<TH1*> IntegrateHex(TH2Poly* h, TString geo, TString type, pair < double, double > center, double width, double axis, double binSize, int nPeaks){
   int nbins = (axis - 0.1)/binSize*4;
   vector<TH1*> hist;
-  for(int iP = 0; iP != nPeaks + 1; iP++){ 
+  for(auto iP = 0; iP != nPeaks + 1; iP++){ 
     TH1* hist_1D = nullptr;
     if(TString(h->GetName()).Contains("Gold Bond") || TString(h->GetName()).Contains("Guard Bond"))
       hist_1D = new TH1D(TString(h->GetName()) + "_Peak" + to_string(iP), ";" + type + " Diff Width [mm]; Modules", 750, 0.0, 1.5);
@@ -105,11 +108,11 @@ vector<TH1*> IntegrateHex(TH2Poly* h, TString geo, TString type, pair < double, 
 
   vector<double> angle = {0., TMath::Pi()/3, TMath::Pi()*2/3, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   if(geo == "Five" || geo == "Semi") angle = {0., TMath::Pi()/2, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
-  for(int iA = 0; iA != angle.size(); iA++){
+  for(auto iA = 0; iA != angle.size(); iA++){
     int index = 1;
          if(nPeaks > 1 && iA == 1) index = 2;
     else if(nPeaks > 1 && (iA == 3 || iA == 4)) index = 3;
-    for(int iB = 0; iB != nbins; iB++){
+    for(auto iB = 0; iB != nbins; iB++){
       double x_ = (binSize*iB + (width/2 - 300*binSize))*TMath::Cos(angle[iA]);
       double y_ = (binSize*iB + (width/2 - 300*binSize))*TMath::Sin(angle[iA]);
       int bin = h->FindBin(x_, y_);
@@ -227,7 +230,7 @@ double getRandomValue(double width, double error, TString type){
 
 pair < double, double >  getPolyCenter(vector<pair<double, double> > p){
   double xf = 0., yf = 0., div = 0.;
-  for(int i = 0; i < p.size(); i++){
+  for(auto i = 0; i < p.size(); i++){
     int n0 = i, n1 = (i + 1) % p.size();
     xf += (p[n0].first + p[n1].first)*(p[n0].first*p[n1].second - p[n1].first*p[n0].second);
     yf += (p[n0].second + p[n1].second)*(p[n0].first*p[n1].second - p[n1].first*p[n0].second);
@@ -289,7 +292,7 @@ vector<pair<double, double> > GetPoints(TString geo, double a_in, double width){
   int nPoints = 6;
   if(geo == "Five" or geo == "Semi") nPoints = 5;
   else if(geo == "Half") nPoints = 4;
-  for(int i = 0; i < nPoints; i++){
+  for(auto i = 0; i < nPoints; i++){
     points.push_back(make_pair(x[i], y[i]));
   }
 
@@ -304,7 +307,7 @@ pair < double, double > HoneycombCustom(TString geo, TH2Poly* hc, Double_t a, do
   //Radius of points
   vector<double> radius, angle, ratio;
   float rMin = 9999999.;
-  for(int i = 0; i < points.size(); i++){
+  for(auto i = 0; i < points.size(); i++){
     points.at(i).first = points.at(i).first - center.first;
     points.at(i).second = points.at(i).second - center.second;
     vector<double> polar = GetPolar(points.at(i).first, points.at(i).second, 0., 0.);
@@ -312,8 +315,8 @@ pair < double, double > HoneycombCustom(TString geo, TH2Poly* hc, Double_t a, do
     angle.push_back(polar[1]);
     if(polar[0] < rMin) rMin = polar[0];
   }
-  for(int i = 0; i < points.size(); i++) ratio.push_back(radius[i]/rMin);
-  for (int theta = 0; theta != angle.size(); theta++){
+  for(auto i = 0; i < points.size(); i++) ratio.push_back(radius[i]/rMin);
+  for (auto theta = 0; theta != angle.size(); theta++){
     int first = theta % angle.size();
     int second = (theta + 1) % angle.size();
     for(int neg = 0; neg < 2; neg++){
@@ -323,7 +326,7 @@ pair < double, double > HoneycombCustom(TString geo, TH2Poly* hc, Double_t a, do
       yloop[1] = points.at(second).second;
       double sign = neg ? -1. : 1.;
       int count = 0;
-      for(int ibin = 1; ibin < steps; ibin++){
+      for(auto ibin = 1; ibin < steps; ibin++){
         vector<double> cart = GetCartesian(radius[first] + sign*a*ibin*ratio[first], angle[first], 0., 0.);
         xloop[3] = cart[0];
         yloop[3] = cart[1];
@@ -360,7 +363,7 @@ void FillAllSides(TString geo, double max, pair < double, double > center, TH2Po
   int iR = 0;
   vector<double> forward = {0., TMath::Pi()/3, TMath::Pi()*2/3, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   if(geo == "Five" || geo == "Semi") forward = {0., TMath::Pi()/2, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
-  for(int iF = 0; iF != forward.size(); iF++){
+  for(auto iF = 0; iF != forward.size(); iF++){
     if(forward[iF] == TMath::Pi()) iR = 0;
     if(comp.size() > 0) secondary = comp[iR];
 
@@ -388,12 +391,12 @@ void AddLineNomHex(double width, TString geo = "Full"){
    // Add the bins
   vector<pair<double, double> >  points = GetPoints(geo, a_in, width);
   pair < double, double > center = getPolyCenter(points);
-  for(int i = 0; i <  points.size(); i++){
+  for(auto i = 0; i <  points.size(); i++){
     points.at(i).first = points.at(i).first - center.first;
     points.at(i).second = points.at(i).second - center.second;
   }
 
-  for(int iS = 0; iS < points.size(); iS++){
+  for(auto iS = 0; iS < points.size(); iS++){
     int first = iS % points.size();
     int second = (iS + 1) % points.size();
     TLine *line = new TLine(points.at(first).first, points.at(first).second, points.at(second).first, points.at(second).second);
@@ -449,14 +452,14 @@ void moduleTolerances(){
   map<TString, pair<double, double> > center;
   //vector<string> Dist = {"Gaussian_PCBplus25", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor"};
   vector<string> Dist = {"Gaussian"};
-  vector<string> Geometry = {"Full", "Five", "Semi", "Half"};
-  //vector<string> Geometry = {"Full"};
+  //vector<string> Geometry = {"Full", "Five", "Semi", "Half"};
+  vector<string> Geometry = {"Five"};
   //vector<string> Dist = {"Gaussian", "Landau", "Flat", "CustomGaus", "CustomLandau", "CustomFlat", "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75"};
   for(auto &geo_str : Geometry){
     vector< pair< pair< string, string>, pair< double, double > > > worst_values;
     vector< pair< pair< string, string>, pair< double, double > > > fit_values;
     TString geo = TString(geo_str);
-    outputDir = "moduleTolerances_Test" + geo;
+    outputDir = baseDir + "/Test" + geo;
     gSystem->mkdir(outputDir, true);
 
     vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(baseplate_w - baseValue + width_new), baseplate_w - baseValue + width_new);
@@ -529,7 +532,7 @@ void moduleTolerances(){
         HoneycombCustom(geo, iter->second, step, width_new, a_new, nbins);
 
       cout << type << endl;
-      for(int i = 0; i != max; i++){
+      for(auto i = 0; i != max; i++){
         double mean_ = 1., sigma_ = 1., kapton_mean_ = 1., kapton_sigma_ = 1.;
         pcb.clear();
         kapton.clear();
@@ -552,7 +555,7 @@ void moduleTolerances(){
           cout << "Sensor shift: " << sensor_shift_x << endl;
 	}
 	//Get widths for each component and each side
-        for(int iS = 0; iS != 3; iS++){
+        for(auto iS = 0; iS != 3; iS++){
           pcb.push_back(getRandomValue(pcb_w*kapton_mean_, pcb_w_err*kapton_sigma_, type));
           kapton.push_back(getRandomValue(kapton_w*kapton_mean_, kapton_w_err*kapton_sigma_, type));
           baseplate.push_back(getRandomValue(baseplate_w*mean_, baseplate_w_err*sigma_, type));
@@ -607,14 +610,14 @@ void moduleTolerances(){
         cout << iter->first << ": (x,y) = (" << center[iter->first].first << "," << center[iter->first].second << ")" << endl;
         vector<TH1*> hist = IntegrateHex(iter->second, geo, type, center[iter->first], width_new, axis, step, nPeaks);
         normalize(hist);
-        prepHists(hist, false, false, false, {colors[iC], colors[iC], colors[iC]});
-        for(int iP = 0; iP != nPeaks + 1; iP++)
+        prepHists(hist, false, false, false, {colors[iC], colors[iC], colors[iC], colors[iC]});
+        for(auto iP = 0; iP != nPeaks + 1; iP++)
           overlap_1D.insert(pair<TString, TH1D*>(iter->first + "_Peak" + to_string(iP), (TH1D*)hist[iP]));
         iC++;
       }
 
       TString name = "";
-      for(int iP = 0; iP != nPeaks + 1; iP++){
+      for(auto iP = 0; iP != nPeaks + 1; iP++){
         TString pName = "_Peak" + to_string(iP);
         auto leg_diff = prepLegends({overlap_1D["pcb_base_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName]}, 
                                     {overlap_1D["pcb_base_stack_hist" + pName]->GetName(), overlap_1D["pcb_kap_stack_hist" + pName]->GetName()}, "P");
@@ -766,7 +769,7 @@ void moduleTolerances(){
 
       auto leg = prepLegends({}, {""}, "L");
       appendLegends(leg, {hNominal}, {"Nominal"}, "L");
-      for(unsigned h = 0; h != hFit.size(); h++){
+      for(auto h = 0; h != hFit.size(); h++){
         TString legName = hFit[h]->GetName();
         legName.ReplaceAll("FitDistribution", "");
         legName.ReplaceAll("FitPCB_Dist", "");
@@ -789,7 +792,7 @@ void moduleTolerances(){
 
       leg = prepLegends({}, {""}, "L");
       appendLegends(leg, {hNominal}, {"Nominal"}, "L");
-      for(unsigned h = 0; h != hWorst.size(); h++){
+      for(auto h = 0; h != hWorst.size(); h++){
         TString legName = hWorst[h]->GetName();
         legName.ReplaceAll("WorstDistribution", "");
         legName.ReplaceAll("WorstPCB_Dist", "");
@@ -850,7 +853,7 @@ float histYield(TH1F* hist){
 
 void setTitleOffset(TCanvas *c, double xOff = .950, double yOff = 1.400){
   TList * list = c->GetListOfPrimitives();
-  for(unsigned int iP = 0; iP < list->GetSize(); ++iP){
+  for(auto iP = 0; iP < list->GetSize(); ++iP){
     TH1 * h = dynamic_cast<TH1*>(list->At(iP));
     if(h == 0) continue;
    h->GetXaxis()->SetTitleOffset(xOff);
