@@ -96,10 +96,12 @@ vector<TH1*> IntegrateHex(TH2Poly* h, TString geo, TString type, pair < double, 
   vector<double> angle = {0., TMath::Pi()/3, TMath::Pi()*2/3, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   if(geo == "Five" || geo == "Semi") angle = {0., TMath::Pi()/2, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   else if(geo == "Half") angle = {0., TMath::Pi()*2/3, TMath::Pi()*4/3, TMath::Pi()*5/3};
+  else if(geo == "Three") angle = {TMath::Pi()/2, TMath::Pi()*4/3, TMath::Pi()*5/3};
+  vector<int> index = {1, 1, 1, 1, 1, 1};
+  if(geo == "Five" || geo == "Semi") index = {1, 2, 1, 3, 3};
+  else if(geo == "Half") index = {1, 2, 1, 2};
+  else if(geo == "Three") index = {1, 2, 2};
   for(auto iA = 0; iA != angle.size(); iA++){
-    int index = 1;
-         if(nPeaks > 1 && iA == 1) index = 2;
-    else if(nPeaks > 1 && (iA == 3 || iA == 4)) index = 3;
     for(auto iB = 0; iB != nbins; iB++){
       double x_ = (binSize*iB + (width/2 - 300*binSize))*TMath::Cos(angle[iA]);
       double y_ = (binSize*iB + (width/2 - 300*binSize))*TMath::Sin(angle[iA]);
@@ -112,11 +114,12 @@ vector<TH1*> IntegrateHex(TH2Poly* h, TString geo, TString type, pair < double, 
            if(geo == "Five" && iA == 1) r += width/2 - GetWidthToA(width)/2;
       else if(geo == "Semi" && iA == 1) r += width/2;
       else if(geo == "half" && iA == 1) r += width/2;
+      else if(geo == "Three" && iA == 0) r += width/2 + GetWidthToA(width)/2;
       r += dr_center;
 
-      double bin1d = hist[index]->GetXaxis()->FindBin(r);
-      double tot = hist[index]->GetBinContent(bin1d);
-      hist[index]->SetBinContent(bin1d, tot + binValue);
+      double bin1d = hist[index[iA]]->GetXaxis()->FindBin(r);
+      double tot = hist[index[iA]]->GetBinContent(bin1d);
+      hist[index[iA]]->SetBinContent(bin1d, tot + binValue);
       //fill plot with total
       bin1d = hist[0]->GetXaxis()->FindBin(r);
       tot = hist[0]->GetBinContent(bin1d);
@@ -163,7 +166,7 @@ vector < pair <double, pair <double, double> > > newShapeInput(){
   auto leg = prepLegends({baseplate_meas_hist, kapton_meas_hist}, {baseplate_meas_hist->GetName(), kapton_meas_hist->GetName()}, "L");
   leg->SetTextSize(0.03);
   leg->SetY1NDC(leg->GetY2NDC() - 0.3);
-  TCanvas* c = drawCompMatt({baseplate_meas_hist, kapton_meas_hist}, leg);
+  TCanvas* c = drawCompMatt({baseplate_meas_hist, kapton_meas_hist}, leg, -1., nullptr, "hist", true);
   gStyle->SetOptStat(0);
   TString name = "measured_dist";
   c->SetTitle(name);
@@ -275,12 +278,20 @@ vector<pair<double, double> > GetPoints(TString geo, double a_in, double width){
     y[2] = y[0];
     x[3] = x[0] + a_in*TMath::Sqrt(3)/2.0;
     y[3] = y[2] - a_in/2.0;
+  } else if(geo == "Three"){
+    x[0] = -1*width/2;
+    y[0] = -1*a_in/2;
+    x[1] = x[0] + a_in*TMath::Sqrt(3);
+    y[1] = y[0];
+    x[2] = x[0] + a_in*TMath::Sqrt(3)/2.0;
+    y[2] = y[0] - a_in/2.0;
   }
 
   vector<pair<double, double> > points;
   int nPoints = 6;
   if(geo == "Five" or geo == "Semi") nPoints = 5;
   else if(geo == "Half") nPoints = 4;
+  else if(geo == "Three") nPoints = 3;
   for(auto i = 0; i < nPoints; i++){
     points.push_back(make_pair(x[i], y[i]));
   }
@@ -326,7 +337,8 @@ pair < double, double > HoneycombCustom(TString geo, TH2Poly* hc, Double_t a, do
         xloop[2] = cart.first;
         yloop[2] = cart.second;
         if(count == 300 && neg == 1) break;
-        if((geo == "Semi" || geo == "Half") && count == 200 && neg == 1) break;
+        if((geo == "Semi" || geo == "Half" || geo == "Three") && count == 200 && neg == 1) break;
+        if(geo == "Three" && count == 100 && neg == 1) break;
         hc->AddBin(4, xloop, yloop);
         //if(theta == 0 && neg == 0){
         //  cout << theta << endl;
@@ -349,18 +361,20 @@ pair < double, double > HoneycombCustom(TString geo, TH2Poly* hc, Double_t a, do
 double ScaleSide(TString geo, int side, double width){
   double newSide = 1.*width;
 
-       if(geo == "Five" && side == 1) newSide = width*TMath::Sqrt(3)/2;
-  else if(geo == "Five" && side == 2) newSide = width*3/4;
-  else if(geo == "Semi" && side == 1) newSide = GetWidthToA(width);
-  else if(geo == "Semi" && side == 2) newSide = GetWidthToA(width)*TMath::Sqrt(3)/2;
-  else if(geo == "Half" && side == 0) newSide = GetWidthToA(width)*3/2;
-  else if(geo == "Half" && side == 1) newSide = width*3/4;
+       if(geo == "Five"  && side == 1) newSide = width*TMath::Sqrt(3)/2;
+  else if(geo == "Five"  && side == 2) newSide = width*3/4;
+  else if(geo == "Semi"  && side == 1) newSide = GetWidthToA(width);
+  else if(geo == "Semi"  && side == 2) newSide = GetWidthToA(width)*TMath::Sqrt(3)/2;
+  else if(geo == "Half"  && side == 0) newSide = GetWidthToA(width)*3/2;
+  else if(geo == "Half"  && side == 1) newSide = width*3/4;
+  else if(geo == "Three" && side == 0) newSide = GetWidthToA(width)/2;
+  else if(geo == "Three" && side > 0) newSide = GetWidthToA(width)*TMath::Sqrt(6)/(2*(TMath::Sqrt(3) - 1)); //NEED TO PROJECT TO THE RIGHT ANGLE!!!!!!!!!!!
 
   return newSide;
 }
 
 void FillAllSides(TString geo, double max, TH2Poly* hc, double nom, 
-		vector<double> rand, double shift_x, double shift_y,, 
+		vector<double> rand, double shift_x, double shift_y, 
 		double width_new, pair < double, double > cen_base,
 		vector<double> comp, double comp_shift_x, double comp_shift_y){
   //Widths
@@ -369,9 +383,11 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
   vector<double> forward = {0., TMath::Pi()/3, TMath::Pi()*2/3, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   if(geo == "Five" || geo == "Semi") forward = {0., TMath::Pi()/2, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   else if(geo == "Half") forward = {0., TMath::Pi()*2/3, TMath::Pi()*4/3, TMath::Pi()*5/3};
+  else if(geo == "Three") forward = {TMath::Pi()/2, TMath::Pi()*4/3, TMath::Pi()*5/3};
   vector<int> index = {0, 1, 2, 0, 1, 2};
   if(geo == "Five" || geo == "Semi") index = {0, 1, 0, 2, 2};
   else if(geo == "Half") index = {0, 1, 0, 1};
+  else if(geo == "Three") index = {0, 1, 2};
   double r_out = 0.;
   for(auto iF = 0; iF != forward.size(); iF++){
     double secondary = ScaleSide(geo, index[iF], nom);
@@ -384,7 +400,9 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
 
     if(geo == "Five" && index[iF] == 1) {
       r_out += GetWidthToA(width_new)/2;
-    } else if(!(geo == "Semi" && index[iF] == 1) && !(geo == "Half" && forward[iF] == TMath::Pi()*2/3)){
+    } else if(geo == "Three" && index[iF] == 0) {
+      r_out -= GetWidthToA(width_new)/2;
+    } else if(!(geo == "Semi" && index[iF] == 1) && !(geo == "Half" && forward[iF] == TMath::Pi()*2/3) && !(geo == "Three" && index[iF] == 0)){
       r_out += width_new/2;
     }
     //cout << hc->GetName() << ": " << "r: " << r_out << " + " << dr << " + " << dr_cen << endl;
@@ -415,6 +433,9 @@ void AddLineNomHex(double width, TString geo = "Full"){
 
 void moduleTolerances(){
   lumistr = "";
+  SetStyle();
+  TDR_EXTRA_LABEL_ = "";
+  TDR_EXTRA_LABEL_2 = "";
   // Input Parameters units are Millimeters
   double baseplate_center = 3.05, baseplate_err = 0.05;
   double pcb_w = 166.64, sensor_w = 166.57, kapton_w = 166.94, baseplate_w = 166.94;
@@ -427,7 +448,6 @@ void moduleTolerances(){
   double gold_min = 0.25, gold_size = 1.500;
   int max = 100000;
   max = 30000;
-  //max = 3;
 
   int nbins = 550;
   //nbins = 5;
@@ -461,8 +481,8 @@ void moduleTolerances(){
   map<TString, pair<double, double> > center;
   //vector<string> Dist = {"Gaussian_PCBplus25", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor"};
   vector<string> Dist = {"Gaussian"};
-  //vector<string> Geometry = {"Full", "Five", "Semi", "Half"};
-  vector<string> Geometry = {"Half"};
+  //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
+  vector<string> Geometry = {"Three"};
   //vector<string> Dist = {"Gaussian", "Landau", "Flat", "CustomGaus", "CustomLandau", "CustomFlat", "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75"};
   for(auto &geo_str : Geometry){
     vector< pair< pair< string, string>, pair< double, double > > > worst_values;
@@ -471,30 +491,22 @@ void moduleTolerances(){
     outputDir = baseDir + "/Test" + geo;
     gSystem->mkdir(outputDir, true);
 
-    vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(baseplate_w), baseplate_w);
-    center.emplace("bas", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(kapton_w), kapton_w);
-    center.emplace("kap", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(sensor_w), sensor_w);
-    center.emplace("sen", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(pcb_w), pcb_w);
-    center.emplace("pcb", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(baseValue), baseValue);
-    center.emplace("nom", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(width_new), width_new);
+    vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(width_new), width_new);
     center.emplace("new", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(kapton_w - (gold_size - 0.650)*2), kapton_w - (gold_size - 0.650)*2);
-    center.emplace("kap_bond", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(sensor_w - (guard_ring_size - 0.580 - 0.150)*2), sensor_w - (guard_ring_size - 0.580 - 0.150)*2);
-    center.emplace("sen_bond", getPolyCenter(points));
-    points = GetPoints(geo, GetWidthToA(kapton_w - (gold_size*2)), kapton_w - (gold_size*2));
-    center.emplace("pcb_bond", getPolyCenter(points));
 
     int nPeaks = 1;
          if(geo == "Five" || geo == "Semi") nPeaks = 3;
-    else if(geo == "Half") nPeaks = 2;
-    double extraSpace = 0.;
-    if(geo == "Half") extraSpace = 0.5;
+    else if(geo == "Half" || geo == "Three") nPeaks = 2;
+    if(geo == "Semi"){
+      axis += 1.0;
+      nbins += 100;
+    } else if(geo == "Half"){
+      axis += 1.0;
+      nbins += 100;
+    } else if(geo == "Three"){
+      axis += 1.4;
+      nbins += 50;
+    }
 
     for(auto &type_str: Dist){
       TString type = TString(type_str);
@@ -519,19 +531,19 @@ void moduleTolerances(){
       vector<double> pcb, kapton, baseplate, sensor, pcb_bond, kapton_bond, sensor_bond;
       double kap_x_shift = 0., sen_x_shift = 0., kap_y_shift = 0., sen_y_shift = 0.;
       map<TString, TH2Poly*> components {
-      	{"pcb", new TH2Poly("pcb_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis + extraSpace, axis, -1*axis, axis)},
-      	{"kap", new TH2Poly("kap_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis + extraSpace, axis, -1*axis, axis)},
-      	{"sen", new TH2Poly("sen_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis + extraSpace, axis, -1*axis, axis)},
-      	{"bas", new TH2Poly("bas_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis + extraSpace, axis, -1*axis, axis)},
+      	{"pcb", new TH2Poly("pcb_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis, axis, -1*axis, axis)},
+      	{"kap", new TH2Poly("kap_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis, axis, -1*axis, axis)},
+      	{"sen", new TH2Poly("sen_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis, axis, -1*axis, axis)},
+      	{"bas", new TH2Poly("bas_2d", ";" + geo + " " + type + " Width [mm];Width [mm]", -1*axis, axis, -1*axis, axis)},
       };
       map<TString, TH2Poly*> overlap {
-      	{"kap_pcb_hist",        new TH2Poly("Gold Bond",         ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)}, 			
-      	{"sen_pcb_hist",        new TH2Poly("Guard Bond",        ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)}, 			
-      	{"pcb_bas_stack_hist",  new TH2Poly("Overlap pcb - base",";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)},    
-      	{"sen_bas_stack_hist",  new TH2Poly("Overlap sen - base",";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)},
-      	{"pcb_kap_stack_hist",  new TH2Poly("Overlap pcb - kap", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)},
-      	{"sen_kap_stack_hist",  new TH2Poly("Overlap sen - kap", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)},
-      	{"sen_pcb_stack_hist",  new TH2Poly("Overlap sen - pcb", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis + extraSpace, 1*axis, -1*axis, 1*axis)},
+      	{"kap_pcb_hist",        new TH2Poly("Gold Bond",         ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)}, 			
+      	{"sen_pcb_hist",        new TH2Poly("Guard Bond",        ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)}, 			
+      	{"pcb_bas_stack_hist",  new TH2Poly("Overlap pcb - base",";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)},    
+      	{"sen_bas_stack_hist",  new TH2Poly("Overlap sen - base",";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)},
+      	{"pcb_kap_stack_hist",  new TH2Poly("Overlap pcb - kap", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)},
+      	{"sen_kap_stack_hist",  new TH2Poly("Overlap sen - kap", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)},
+      	{"sen_pcb_stack_hist",  new TH2Poly("Overlap sen - pcb", ";" + geo + " " + type + " Diff Width [mm];Diff Width [mm]", -1*axis, 1*axis, -1*axis, 1*axis)},
       };
      
       for(std::map<TString,TH2Poly*>::iterator iter = components.begin(); iter != components.end(); ++iter)
@@ -616,7 +628,6 @@ void moduleTolerances(){
       }
 
       for(std::map<TString,TH2Poly*>::iterator iter = components.begin(); iter != components.end(); ++iter){
-        cout << iter->first << ": (x,y) = (" << center[iter->first].first << "," << center[iter->first].second << ")" << endl;
         TString label = iter->first == "bas" ? "baseplate" : (iter->first == "kap" ? "kapton" : (iter->first == "sen" ? "sensor" : "pcb"));
         print2DPlots(iter->second, geo, label + " width", geo + "_" + type + "_Width_" + label, width_new);
       }
@@ -631,11 +642,6 @@ void moduleTolerances(){
       map<TString, TH1D*> overlap_1D;
       int iC = 0;
       for(std::map<TString,TH2Poly*>::iterator iter = overlap.begin(); iter != overlap.end(); ++iter){
-        //TObjArray *ty = iter->first.Tokenize("_"); // note: tokens separator = ANY CHARACTER in the delimiter string
-        //ty->Print();
-        //TString first = ((TObjString *)(ty->At(0)))->String();
-        //TString second = ((TObjString *)(ty->At(1)))->String();
-        //cout << iter->first << ": (x,y) = (" << center[iter->first].first << "," << center[iter->first].second << ")" << endl;
         vector<TH1*> hist = IntegrateHex(iter->second, geo, type, center["new"], width_new, axis, step, nPeaks);
         normalize(hist);
         prepHists(hist, false, false, false, {colors[iC], colors[iC], colors[iC], colors[iC]});
@@ -651,7 +657,7 @@ void moduleTolerances(){
                                     {overlap_1D["pcb_bas_stack_hist" + pName]->GetName(), overlap_1D["pcb_kap_stack_hist" + pName]->GetName()}, "P");
         leg_diff->SetTextSize(0.03);
         leg_diff->SetY1NDC(leg_diff->GetY2NDC() - 0.3);
-        TCanvas* diff = drawCompMatt({overlap_1D["pcb_bas_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName]}, leg_diff, 0.001);
+        TCanvas* diff = drawCompMatt({overlap_1D["pcb_bas_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName]}, leg_diff, 0.001, nullptr, "hist", true);
         name = geo + "_" + type + "_diff" + pName;
         diff->Update();
         diff->SetTitle(name);
@@ -661,7 +667,7 @@ void moduleTolerances(){
                                     {overlap_1D["sen_bas_stack_hist" + pName]->GetName(), overlap_1D["sen_pcb_stack_hist" + pName]->GetName(), overlap_1D["sen_kap_stack_hist" + pName]->GetName()}, "P");
         leg_sen_diff->SetTextSize(0.03);
         leg_sen_diff->SetY1NDC(leg_sen_diff->GetY2NDC() - 0.3);
-        TCanvas* sen_diff = drawCompMatt({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, leg_sen_diff, 0.001);
+        TCanvas* sen_diff = drawCompMatt({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, leg_sen_diff, 0.001, nullptr, "hist", true);
         name = geo + "_" + type + "_sen_diff" + pName;
         sen_diff->Update();
         sen_diff->SetTitle(name);
@@ -671,7 +677,7 @@ void moduleTolerances(){
                                     {overlap_1D["sen_pcb_hist" + pName]->GetName(), overlap_1D["kap_pcb_hist" + pName]->GetName()}, "P");
         leg_bond_diff->SetTextSize(0.03);
         leg_bond_diff->SetY1NDC(leg_bond_diff->GetY2NDC() - 0.3);
-        TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName]}, leg_bond_diff, 0.001);
+        TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
         name = geo + "_" + type + "_bond_diff" + pName;
         bond_diff->Update();
         bond_diff->SetTitle(name);
@@ -813,7 +819,7 @@ void moduleTolerances(){
       leg->SetTextSize(0.04);
       leg->SetY1NDC(leg->GetY2NDC() - 0.2);
       if(TString(d.key()) == "PCB_Dist") setLegend(leg, 2, 0.45, 0.6, 0.92, 0.87);
-      TCanvas* c = drawCompAndRatio(hFit, hDiv, leg, "Fit/Nominal", 0.499, 1.501, true, 0.01, 2., false, nullptr, false);
+      TCanvas* c = drawCompAndRatio(hFit, hDiv, leg, "Fit/Nominal", 0.499, 1.501, true, 0.01, 2., false, nullptr, false, 9999., true);
       TString outputName = outputDir + "/Fit_" + geo + "_" + TString(d.key());
       c->SetTitle(outputName);
       c->Print(outputName+".pdf");
@@ -836,7 +842,7 @@ void moduleTolerances(){
       leg->SetTextSize(0.04);
       leg->SetY1NDC(leg->GetY2NDC() - 0.2);
       if(TString(d.key()) == "PCB_Dist") setLegend(leg, 2, 0.45, 0.6, 0.92, 0.87);
-      c = drawCompAndRatio(hWorst, hDiv_w, leg, "Worst/Nominal", 0.001, 2.001, true, -1., 0.7, false, nullptr, false, -0.3);
+      c = drawCompAndRatio(hWorst, hDiv_w, leg, "Worst/Nominal", 0.001, 2.001, true, -1., 0.7, false, nullptr, false, -0.3, true);
       outputName = outputDir + "/Worst_" + geo + "_" + TString(d.key());
       c->SetTitle(outputName);
       c->Print(outputName+".pdf");
