@@ -179,7 +179,8 @@ vector < pair <double, pair <double, double> > > newShapeInput(){
   return avg_param;
 }
 
-json makeJSONModule(vector< pair< pair< string, string>, pair< double, double > > >& fit, vector< pair< pair< string, string>, pair< double, double > > >& worst){
+json makeJSONModule(vector< pair< pair< string, string>, pair< double, double > > >& fit, vector< pair< pair< string, string>, pair< pair< double, double >, double > > >& worst){
+//vector< pair< pair< string, string>, pair< double, double > > >& worst){
   json j;
   int binnum = 0;
   for ( const auto &it : fit ) {
@@ -202,7 +203,7 @@ json makeJSONModule(vector< pair< pair< string, string>, pair< double, double > 
     }
   }
   for ( const auto & it : worst ) {
-    j["Worst"][it.first.first][it.first.second] = {it.second.first, it.second.second};
+    j["Worst"][it.first.first][it.first.second] = {it.second.first.first, it.second.first.second};
   }
 
   return j;
@@ -402,7 +403,7 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
       r_out += GetWidthToA(width_new)/2;
     } else if(geo == "Three" && index[iF] == 0) {
       r_out -= GetWidthToA(width_new)/2;
-    } else if(!(geo == "Semi" && index[iF] == 1) && !(geo == "Half" && forward[iF] == TMath::Pi()*2/3) && !(geo == "Three" && index[iF] == 0)){
+    } else if(!(geo == "Semi" && index[iF] == 1) && !(geo == "Half" && forward[iF] == TMath::Pi()*2/3)){
       r_out += width_new/2;
     }
     //cout << hc->GetName() << ": " << "r: " << r_out << " + " << dr << " + " << dr_cen << endl;
@@ -447,7 +448,7 @@ void moduleTolerances(){
   double guard_ring_min = 0.25, guard_ring_size = 1.500;
   double gold_min = 0.25, gold_size = 1.500;
   int max = 100000;
-  max = 30000;
+  //max = 30000;
 
   int nbins = 550;
   //nbins = 5;
@@ -482,10 +483,10 @@ void moduleTolerances(){
   //vector<string> Dist = {"Gaussian_PCBplus25", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor"};
   vector<string> Dist = {"Gaussian"};
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
-  vector<string> Geometry = {"Three"};
+  vector<string> Geometry = {"Five"};
   //vector<string> Dist = {"Gaussian", "Landau", "Flat", "CustomGaus", "CustomLandau", "CustomFlat", "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75"};
   for(auto &geo_str : Geometry){
-    vector< pair< pair< string, string>, pair< double, double > > > worst_values;
+    vector< pair< pair< string, string>, pair< pair< double, double >, double > > > worst_values;
     vector< pair< pair< string, string>, pair< double, double > > > fit_values;
     TString geo = TString(geo_str);
     outputDir = baseDir + "/Test" + geo;
@@ -498,11 +499,11 @@ void moduleTolerances(){
          if(geo == "Five" || geo == "Semi") nPeaks = 3;
     else if(geo == "Half" || geo == "Three") nPeaks = 2;
     if(geo == "Semi"){
-      axis += 1.0;
-      nbins += 100;
+      axis += 0.5;
+      nbins += 50;
     } else if(geo == "Half"){
-      axis += 1.0;
-      nbins += 100;
+      axis += 1.5;
+      nbins += 150;
     } else if(geo == "Three"){
       axis += 1.4;
       nbins += 50;
@@ -707,6 +708,7 @@ void moduleTolerances(){
 
         vector<double> max_tol = findHighXbin(iter->second);
         string name = "";
+        string peak = "";
              if(iter->first.Contains("pcb_bas_stack")) name = "PCB to Base";
         else if(iter->first.Contains("sen_pcb_stack")) name = "Sen to PCB";
         else if(iter->first.Contains("sen_bas_stack")) name = "Sen to Base";
@@ -714,8 +716,12 @@ void moduleTolerances(){
         else if(iter->first.Contains("sen_kap_stack")) name = "Sen to Kap";
         else if(iter->first.Contains("kap_pcb_hist"))  name = "Gold Bond";
         else if(iter->first.Contains("sen_pcb_hist"))  name = "Guard Bond";
-        cout << name << " lowest xbin: " << max_tol[0] << " +/- " << max_tol[1] << " P(<0) =  " << max_tol[2] << endl;
-        worst_values.push_back(make_pair(make_pair(type_str, name), make_pair(max_tol[0]/1000, max_tol[1]/1000)));
+             if(iter->first.Contains("Peak1")) peak = " Peak 1";
+        else if(iter->first.Contains("Peak2")) peak = " Peak 2";
+        else if(iter->first.Contains("Peak3")) peak = " Peak 3";
+
+        //cout << name << " lowest xbin: " << max_tol[0] << " +/- " << max_tol[1] << " P(<0) =  " << max_tol[2] << endl;
+        worst_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(make_pair(max_tol[0]/1000, max_tol[1]/1000), max_tol[2])));
 
         //Get Fit
         TString dist_type = "gausn";
@@ -723,8 +729,8 @@ void moduleTolerances(){
 
         iter->second->Fit(dist_type);
         TF1* avg_param = (TF1*)iter->second->GetFunction(dist_type);
-        fit_values.push_back(make_pair(make_pair(type_str, name), make_pair(avg_param->GetParameter(1), avg_param->GetParameter(2))));
-        cout << "Fit to " << name << " = " << avg_param->GetParameter(1)*1000 << " +/- " << avg_param->GetParameter(2)*1000 << endl;
+        fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(avg_param->GetParameter(1), avg_param->GetParameter(2))));
+        //cout << "Fit to " << name << " = " << avg_param->GetParameter(1)*1000 << " +/- " << avg_param->GetParameter(2)*1000 << endl;
       }
       
       TFile *outFile = new TFile(outputDir+"/"+name+".root", "RECREATE");
@@ -737,6 +743,13 @@ void moduleTolerances(){
         delete iter->second;
       }
       outFile->Close();
+    }
+
+    for ( vector< pair< pair< string, string>, pair< pair< double, double >, double > > >::const_iterator it = worst_values.begin() ; it != worst_values.end(); it++){
+      cout << it->first.first << " " << it->first.second << " lowest xbin: " << it->second.first.first << " +/- " << it->second.first.second << " P(<0) =  " << it->second.second << endl;
+    }
+    for ( vector< pair< pair< string, string>, pair< double, double > > >::const_iterator it = fit_values.begin() ; it != fit_values.end(); it++){
+      cout << it->first.first << " Fit to " << it->first.second << " = " << it->second.first*1000 << " +/- " << it->second.second*1000 << endl;
     }
 
     std::ofstream jout;
