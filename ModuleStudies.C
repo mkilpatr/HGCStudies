@@ -66,7 +66,7 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
   outfile << "Component Overlaps" << " & \t" << "Nominal " << R"([$\mu m]$)" << " & \t" << "Fitted " << R"($[\mu m]$)" << " & \t" << "Worst " << R"($[\mu m]$)" << R"( \\)" << endl;;
   for (json::iterator dist = jtot["Fit"].begin(); dist != jtot["Fit"].end(); ++dist) {
     //key for overlap comparison
-    outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{)" + dist.key() + R"(} \\)" << endl << R"(\hline)" << endl;
+    outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{$\vcenter{)" + dist.key() + R"(}$} \\)" << endl << R"(\hline)" << endl;
     for (json::iterator comp = jtot["Fit"][dist.key()].begin(); comp != jtot["Fit"][dist.key()].end(); ++comp) {
       if(TString(comp.key()).Contains("Nominal")) continue;
       string peak = "";
@@ -74,11 +74,11 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
       else if(TString(comp.key()).Contains("Peak 2")) peak = " Peak 2";
       else if(TString(comp.key()).Contains("Peak 3")) peak = " Peak 3";
 
-      outfile << comp.key();
-      outfile << " & \t" << Round(jtot["Fit"][dist.key()]["Nominal" + peak][0])
-	      << " & \t" << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
-      outfile << " & \t" << Round(jtot["Worst"][dist.key()][comp.key()][0]) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1]) 
-		         << R"( $P(0<) =$ )" << Round(jtot["Worst"][dist.key()][comp.key()][2]) << R"( \\)" << endl;;
+      outfile << R"($\vcenter{)" << comp.key() << R"(}$)";
+      outfile << " & \t $\vcenter{" << Round(jtot["Fit"][dist.key()]["Nominal" + peak][0]) << R"(}$)"
+	      << " & \t $\vcenter{" << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]) << R"(}$)";
+      outfile << " & \t $\vcenter{" << Round(jtot["Worst"][dist.key()][comp.key()][0]) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1])
+		         << R"( $P(0<) =$ )" << Round(jtot["Worst"][dist.key()][comp.key()][2])  << R"(}$)" << R"( \\)" << endl;
 
     }//for comparison
   }//for overlap
@@ -463,7 +463,7 @@ double ScaleSide(TString geo, int side, double width){
   else if(geo == "Half"  && side == 0) newSide = GetWidthToA(width)*3/2;
   else if(geo == "Half"  && side == 1) newSide = width*3/4;
   else if(geo == "Three" && side == 0) newSide = GetWidthToA(width)/2;
-  else if(geo == "Three" && side > 0) newSide = width/(TMath::Sqrt(3) - 1); //NEED TO PROJECT TO THE RIGHT ANGLE!!!!!!!!!!!
+  else if(geo == "Three" && side > 0)  newSide = (GetWidthToA(width)*TMath::Sqrt(3))/4; 
 
   return newSide;
 }
@@ -471,7 +471,7 @@ double ScaleSide(TString geo, int side, double width){
 void FillAllSides(TString geo, double max, TH2Poly* hc, double nom, 
 		vector<double> rand, double shift_x, double shift_y, 
 		double width_new, pair < double, double > cen_base,
-		vector<double> comp, double comp_shift_x, double comp_shift_y){
+		vector<double> comp, double comp_shift_x, double comp_shift_y, double min = 0.){
   //Widths
   double dx = shift_x - comp_shift_x, dy = shift_y - comp_shift_y;
   pair<double, double> rOut;
@@ -502,7 +502,7 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
     }
     //cout << hc->GetName() << ": " << "r: " << r_out << " + " << dr << " + " << dr_cen << endl;
     
-    rOut = GetCartesian(r_out + dr - dr_cen, forward[iF], 0., 0.);
+    rOut = GetCartesian(r_out + dr - dr_cen - min, forward[iF], 0., 0.);
     hc->Fill(rOut.first, rOut.second);
   }
 }
@@ -531,38 +531,6 @@ void moduleTolerances(){
   SetStyle();
   TDR_EXTRA_LABEL_ = "";
   TDR_EXTRA_LABEL_2 = "";
-  // Input Parameters units are Millimeters
-  double baseplate_center = 3.05, baseplate_err = 0.05;
-  double pcb_w = 166.64, sensor_w = 166.57, kapton_w = 166.94, baseplate_w = 166.94;
-  double pcb_w_err = 0.1, sensor_w_err = 0.02, kapton_w_err = 0.05, baseplate_w_err = 0.05;
-  double pcb_shift_r = 0.04, pcb_shift_theta = TMath::Pi();
-  double sensor_shift_x = 0.500, sensor_shift_y = 0.050, sensor_shift_theta = 0.050; //theta is radians
-  double baseValue = sensor_w;
-  double baseValue_total = baseValue;
-  double guard_ring_min = 0.25, guard_ring_size = 1.500;
-  double gold_min = 0.25, gold_size = 1.500;
-  int max = 100000;
-  //max = 30000;
-
-  int nbins = 550;
-  //nbins = 5;
-  double step = 0.002;
-  double width_new = 1.4;
-  double axis = width_new/2 + nbins*step + 0.1;
-  double a_new = GetWidthToA(width_new);
-  vector < pair <double, pair<double, double> > > custom = newShapeInput();
-  double meas_sigma = custom[0].second.second;
-  double meas_mean = custom[0].second.first;
-  double kapton_meas_sigma = custom[1].second.second;
-  double kapton_meas_mean = custom[1].second.first;
-
-  double mean = meas_mean/baseplate_w;
-  double sigma = meas_sigma/baseplate_w_err;
-  double kapton_mean = kapton_meas_mean/kapton_w;
-  double kapton_sigma = kapton_meas_sigma/kapton_w_err;
-
-  cout << "baseplate: " << mean << " +/- " << sigma << endl;
-  cout << "kapton: " << kapton_mean << " +/- " << kapton_sigma << endl;
 
   //Colors
   colors.push_back(kAzure+6);
@@ -573,11 +541,10 @@ void moduleTolerances(){
   colors.push_back(kViolet-4);
   colors.push_back(kSpring-9);
 
-  map<TString, pair<double, double> > center;
   //vector<string> Dist = {"Gaussian_PCBplus25", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor"};
   vector<string> Dist = {"Gaussian"};
-  //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
-  vector<string> Geometry = {"Three"};
+  vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
+  //vector<string> Geometry = {"Three"};
   //vector<string> Dist = {"Gaussian", "Landau", "Flat", "CustomGaus", "CustomLandau", "CustomFlat", "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75"};
   for(auto &geo_str : Geometry){
     vector< pair< pair< string, string>, pair< pair< double, double >, double > > > worst_values;
@@ -586,25 +553,61 @@ void moduleTolerances(){
     outputDir = baseDir + "/Test" + geo;
     gSystem->mkdir(outputDir, true);
 
-    vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(width_new), width_new);
-    center.emplace("new", getPolyCenter(points));
-
-    int nPeaks = 1;
-         if(geo == "Five" || geo == "Semi") nPeaks = 3;
-    else if(geo == "Half" || geo == "Three") nPeaks = 2;
-    if(geo == "Semi"){
-      axis += 0.5;
-      nbins += 50;
-    } else if(geo == "Half"){
-      axis += 1.5;
-      nbins += 150;
-    } else if(geo == "Three"){
-      axis += 1.4;
-      nbins += 50;
-    }
-
     for(auto &type_str: Dist){
       TString type = TString(type_str);
+      // Input Parameters units are Millimeters
+      double baseplate_center = 3.05, baseplate_err = 0.05;
+      double pcb_w = 166.64, sensor_w = 166.57, kapton_w = 166.94, baseplate_w = 166.94;
+      double pcb_w_err = 0.1, sensor_w_err = 0.02, kapton_w_err = 0.05, baseplate_w_err = 0.05;
+      double pcb_shift_r = 0.04, pcb_shift_theta = TMath::Pi();
+      double sensor_shift_x = 0.500, sensor_shift_y = 0.050, sensor_shift_theta = 0.050; //theta is radians
+      double baseValue = sensor_w;
+      double baseValue_total = baseValue;
+      double guard_ring_min = 0.25, guard_ring_size = 1.500;
+      double gold_min = 0.25, gold_size = 1.500;
+      int max = 100000;
+      //max = 30000;
+
+      int nbins = 550;
+      if(geo == "Half" || geo == "Semi") nbins = 650;
+      
+      //nbins = 5;
+      double step = 0.002;
+      double width_new = 1.4;
+      double axis = width_new/2 + nbins*step + 0.1;
+      double a_new = GetWidthToA(width_new);
+
+      double sigma = 1., mean = 1., kapton_sigma = 1., kapton_mean = 1.;
+      if(type.Contains("Custom")){
+        vector < pair <double, pair<double, double> > > custom = newShapeInput();
+        sigma = custom[0].second.second/baseplate_w_err;
+        mean = custom[0].second.first/baseplate_w;
+        kapton_sigma = custom[1].second.second/kapton_w_err;
+        kapton_mean = custom[1].second.first/kapton_w;
+        baseValue_total = baseValue*mean;
+      }
+
+      cout << "baseplate: " << mean << " +/- " << sigma << endl;
+      cout << "kapton: " << kapton_mean << " +/- " << kapton_sigma << endl;
+
+      map<TString, pair<double, double> > center;
+      vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(width_new), width_new);
+      center.emplace("new", getPolyCenter(points));
+
+      int nPeaks = 1;
+           if(geo == "Five" || geo == "Semi") nPeaks = 3;
+      else if(geo == "Half" || geo == "Three") nPeaks = 2;
+      if(geo == "Semi"){
+        axis += 0.5;
+        nbins += 50;
+      } else if(geo == "Half"){
+        axis += 1.5;
+        nbins += 150;
+      } else if(geo == "Three"){
+        axis += 1.4;
+        nbins += 50;
+      }
+
       if(type.Contains("PCB")){
         pcb_w = 166.64;
         TString buffer = type;
@@ -648,23 +651,15 @@ void moduleTolerances(){
 
       cout << type << endl;
       for(auto i = 0; i != max; i++){
-        double mean_ = 1., sigma_ = 1., kapton_mean_ = 1., kapton_sigma_ = 1.;
         pcb.clear();
         kapton.clear();
         baseplate.clear();
         sensor.clear();
-        if(type.Contains("CustomGaus")){
-          baseValue_total = baseValue*mean;
-          mean_ = mean;
-          sigma_ = sigma;
-          kapton_mean_ = kapton_mean;
-          kapton_sigma_ = kapton_sigma;
-        }
         if(i == 0){
-          cout << "baseplate: " << baseplate_w*mean_ << " +/- " << baseplate_w_err*sigma_ << endl;
-          cout << "pcb: " << pcb_w*kapton_mean_ << " +/- " << pcb_w_err*kapton_sigma_ << endl;
-          cout << "kapton: " << kapton_w*kapton_mean_ << " +/- " << kapton_w_err*kapton_sigma_ << endl;
-          cout << "sensor: " << sensor_w*kapton_mean_ << " +/- " << sensor_w_err*kapton_sigma_ << endl;
+          cout << "baseplate: " << baseplate_w*mean << " +/- " << baseplate_w_err*sigma << endl;
+          cout << "pcb: " << pcb_w*kapton_mean << " +/- " << pcb_w_err*kapton_sigma << endl;
+          cout << "kapton: " << kapton_w*kapton_mean << " +/- " << kapton_w_err*kapton_sigma << endl;
+          cout << "sensor: " << sensor_w*kapton_mean << " +/- " << sensor_w_err*kapton_sigma << endl;
           cout << "center: " << baseplate_err << endl;
           cout << "PCB shift: " << pcb_shift_r<< endl;
           cout << "Sensor shift: " << sensor_shift_x << endl;
@@ -673,14 +668,14 @@ void moduleTolerances(){
         int sides = 3;
         if(geo == "Half") sides = 2;
         for(auto iS = 0; iS != sides; iS++){
-          double pcb_w_new = ScaleSide(geo, iS, pcb_w*kapton_mean_);
-          double kapton_w_new = ScaleSide(geo, iS, kapton_w*kapton_mean_);
-          double baseplate_w_new = ScaleSide(geo, iS, baseplate_w*mean_);
-          double sensor_w_new = ScaleSide(geo, iS, sensor_w*kapton_mean_);
-          pcb.push_back(getRandomValue(pcb_w_new, pcb_w_err*kapton_sigma_, type));
-          kapton.push_back(getRandomValue(kapton_w_new, kapton_w_err*kapton_sigma_, type));
-          baseplate.push_back(getRandomValue(baseplate_w_new, baseplate_w_err*sigma_, type));
-          sensor.push_back(getRandomValue(sensor_w_new, sensor_w_err*kapton_sigma_, type));
+          double pcb_w_new = ScaleSide(geo, iS, pcb_w*kapton_mean);
+          double kapton_w_new = ScaleSide(geo, iS, kapton_w*kapton_mean);
+          double baseplate_w_new = ScaleSide(geo, iS, baseplate_w*mean);
+          double sensor_w_new = ScaleSide(geo, iS, sensor_w*kapton_mean);
+          pcb.push_back(getRandomValue(pcb_w_new, pcb_w_err*kapton_sigma, type));
+          kapton.push_back(getRandomValue(kapton_w_new, kapton_w_err*kapton_sigma, type));
+          baseplate.push_back(getRandomValue(baseplate_w_new, baseplate_w_err*sigma, type));
+          sensor.push_back(getRandomValue(sensor_w_new, sensor_w_err*kapton_sigma, type));
           kapton_bond.push_back(kapton.at(iS) - (gold_size - 0.650)*2);
           sensor_bond.push_back(sensor.at(iS) - (guard_ring_size - 0.580 - 0.150)*2);
           pcb_bond.push_back(pcb.at(iS) - gold_size*2);
@@ -716,10 +711,10 @@ void moduleTolerances(){
 										          sensor, sen_x_shift, sen_y_shift);
         FillAllSides(geo, double(max), overlap["kap_pcb_hist"],       baseValue_total, kapton_bond, kap_x_shift + sen_x_shift, kap_y_shift + sen_y_shift, 
 										       width_new, center["new"],
-										  	  pcb_bond, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift);
+										  	  pcb_bond, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift, gold_min);
         FillAllSides(geo, double(max), overlap["sen_pcb_hist"],       baseValue_total, sensor_bond, sen_x_shift, sen_y_shift, 
 										       width_new, center["new"],
-										  	  pcb_bond, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift);
+										  	  pcb_bond, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift, gold_min);
       }
 
       for(std::map<TString,TH2Poly*>::iterator iter = components.begin(); iter != components.end(); ++iter){
@@ -802,8 +797,8 @@ void moduleTolerances(){
         sensor_bond_nom.push_back(sensor.at(iS) - (guard_ring_size - 0.580 - 0.150)*2);
         pcb_bond_nom.push_back(pcb.at(iS) - gold_size*2);
 
-        fit_values.push_back(make_pair(make_pair("Nominal" + peak, "Guard Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2, 0.0))); 
-        fit_values.push_back(make_pair(make_pair("Nominal" + peak, "Shield Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2, 0.0)));
+        fit_values.push_back(make_pair(make_pair("Nominal" + peak, "Guard Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0))); 
+        fit_values.push_back(make_pair(make_pair("Nominal" + peak, "Shield Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0)));
         fit_values.push_back(make_pair(make_pair("Nominal" + peak, "PCB to Base"), 	make_pair((baseplate_nom[iS] - pcb_nom[iS])/2, 0.0)));
         fit_values.push_back(make_pair(make_pair("Nominal" + peak, "Sen to Base"),	make_pair((baseplate_nom[iS] - sensor_nom[iS])/2, 0.0)));
         fit_values.push_back(make_pair(make_pair("Nominal" + peak, "PCB to Kap"), 	make_pair((kapton_nom[iS] - pcb_nom[iS])/2, 0.0)));
