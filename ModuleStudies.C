@@ -17,7 +17,7 @@ using namespace EstTools;
 using json = nlohmann::json;
 
 TString outputDir = "";
-TString baseDir = "moduleTolerances_complete_120720_kaptonMin_multi";
+TString baseDir = "moduleTolerances_complete_121020_test";
 vector<Color_t> colors;
 bool debug = false;
 TString whichOverlap = "base - kap";
@@ -129,6 +129,7 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
   outfile << R"(\usepackage[usenames, dvipsnames]{color})" << endl;
   outfile << R"(\pagenumbering{gobble})" << endl;
   outfile << R"(\def\arraystretch{0.5})" << endl;
+  outfile << R"(\usepackage[margin=1cm]{geometry})" << endl;
   outfile << R"(\begin{document})" << endl;
 
   for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
@@ -152,7 +153,7 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
         outfile << translateString(comp.key(), latexMap, "_", ", "); 
         outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
                 << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
-        outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0]) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1])
+        outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1])
           	         << R"( $P(w_{ij}<0) = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2])  << R"( \\)" << endl;
 
       }//for comparison
@@ -189,6 +190,7 @@ void printWorstTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
   outfile << R"(\usepackage[usenames, dvipsnames]{color})" << endl;
   outfile << R"(\pagenumbering{gobble})" << endl;
   outfile << R"(\def\arraystretch{0.5})" << endl;
+  outfile << R"(\usepackage[margin=1cm]{geometry})" << endl;
   outfile << R"(\begin{document})" << endl;
 
   for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
@@ -216,7 +218,7 @@ void printWorstTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
         outfile << translateString(comp.key(), latexMap, "_", ", "); 
         outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
                 << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
-        outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0]) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1])
+        outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1])
           	         << R"( $P(w_{ij}<0) = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2])  << R"( \\)" << endl;
 
       }//for comparison
@@ -254,11 +256,8 @@ double getCutoffInBetween(double width, double cutoff){
 pair<double, double> GetPolar(TString name, double x1, double y1, double x0, double y0){
   double r = TMath::Sqrt((x1 - x0)*(x1 - x0) + (y1 - y0)*(y1 - y0));
   double phi = TMath::ATan((y1 - y0)/(x1 - x0));
-  //if(debug && name.Contains(whichOverlap)) cout << "(x, y) = " << "(" << (x1 - x0) << ", " << (y1 - y0) << ")" << endl;
-  //if(debug && name.Contains(whichOverlap)) cout << "(r, phi) = " << "(" << r << ", " << phi << endl;
   if((x1 - x0) < 0) phi += TMath::Pi();
   if((x1 - x0) >= 0 && (y1 - y0) < 0) phi += 2*TMath::Pi();
-  //if(debug && name.Contains(whichOverlap)) cout << "(r, phi) = " << "(" << r << ", " << phi << endl;
 
   return make_pair(r, phi);
 }
@@ -266,28 +265,22 @@ pair<double, double> GetPolar(TString name, double x1, double y1, double x0, dou
 pair<double, double> GetCartesian(TString name, double r, double phi, double x0, double y0){
   double x1 = r*TMath::Cos(phi) + x0;
   double y1 = r*TMath::Sin(phi) + y0;
-  //if(debug && name.Contains(whichOverlap)) cout << "(r, phi) = " << "(" << r << ", " << phi << endl;
-  //if(debug && name.Contains(whichOverlap)) cout << "(x, y) = " << "(" << x1 << ", " << y1 << ")" << endl;
   
   return make_pair(x1, y1);
-}
-
-double integrateFrom(TH1D* h, double value = 0.){
-  int xbin = h->FindFixBin(value);
-  double prob = h->Integral(0,xbin+1);
-  return prob;
 }
 
 vector<double> findHighXbin(TH1D* h){
   double mod = -999., belowZero = 0., width = 0.;;
   vector<double> output;
-  for(auto bin = h->GetNbinsX() + 1; bin > 0; --bin){
+  int nbins = h->GetNbinsX();
+  for(int bin = 1; bin <= nbins; bin++) {
+    if(h->GetBinLowEdge(bin) > 0) break;
     mod = h->GetBinContent(bin) > 0 ? h->GetBinLowEdge(bin) : mod;
     if(mod != -999.){
       width = h->GetBinWidth(bin);
     }
     if(h->GetBinLowEdge(bin) < 0){
-      belowZero += h->GetBinContent(bin);
+      belowZero = h->GetBinContent(bin);
     }
   }
   output.push_back((mod + width/2)*1000);
@@ -304,7 +297,7 @@ vector<TH1*> IntegrateHex(TH2Poly* h, TString geo, TString type, pair < double, 
     if(TString(h->GetName()).Contains("Shield Bond") || TString(h->GetName()).Contains("Guard Bond"))
       hist_1D = new TH1D(TString(h->GetName()) + "_Peak" + to_string(iP), ";" + type + " Diff Width [mm]; Modules", 750, 0.0, 1.5);
     else
-      hist_1D = new TH1D(TString(h->GetName()) + "_Peak" + to_string(iP), ";" + type + " Diff Width [mm]; Modules", 425, -0.15, 0.7);
+      hist_1D = new TH1D(TString(h->GetName()) + "_Peak" + to_string(iP), ";" + type + " Diff Width [mm]; Modules", 475, -0.25, 0.7);
     hist.push_back(hist_1D);
   }
 
@@ -589,10 +582,10 @@ double ScaleSide(TString geo, int side, double width){
   return newSide;
 }
 
-//        FillAllSides(geo, double(max), overlap["sen_pcb_kap_hist"],   baseValue_total,    pcb_backside, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift,
+//        FillAllSides(geo, double(max), overlap["sen_pcb_kap_hist"],   baseValue_total,    pcb_backside, PcbToSen_shift.first + SenToKap_x_shift, PcbToSen_shift.second + SenToKap_y_shift,
 //										       width_new, center["new"],
-//										       sensor_backside, sen_x_shift, sen_y_shift, backside_min,
-//										       kapton_backside, kap_x_shift, kap_y_shift, sensor_backside_between, backside_x_err, backside_y_err);
+//										       sensor_backside, SenToKap_x_shift, SenToKap_y_shift, backside_min,
+//										       kapton_backside, KapToBas_x_shift, KapToBas_y_shift, sensor_backside_between, backside_x_err, backside_y_err);
 //        fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Backside Bond"),
 //            make_pair((pcb_bond_nom[iS] - sensor_bond_nom[iS] + sensor_backside_between_nom[iS] - kapton_backside_nom[iS])/2, 0.0)));
 
@@ -600,12 +593,11 @@ double ScaleSide(TString geo, int side, double width){
 void FillAllSides(TString geo, double max, TH2Poly* hc, double nom, 
 		vector<double> rand, double shift_x, double shift_y, 
 		double width_new, pair < double, double > cen_base,
-		vector<double> comp = {}, double comp_shift_x = 0., double comp_shift_y = 0., double min = 0.,
-		vector<double> comp2 = {}, double comp2_shift_x = 0., double comp2_shift_y = 0., 
+		vector<double> comp = {}, double min = 0.,
+		vector<double> comp2 = {}, 
                 vector<double> comp_between = {}, pair<double, double> backside_x_err = make_pair(0.0, 0.0), pair<double, double> backside_y_err = make_pair(0.0, 0.0)){
   //Widths
-  double dx = (shift_x - comp_shift_x), dy = (shift_y - comp_shift_y);
-  double dx_back = (shift_x - comp2_shift_x), dy_back = (shift_y - comp2_shift_y);
+  double dx = (shift_x), dy = (shift_y);
   pair<double, double> rOut;
   vector<double> forward = {0., TMath::Pi()/3, TMath::Pi()*2/3, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
   if(geo == "Five" || geo == "Semi") forward = {0., TMath::Pi()/2, TMath::Pi(), TMath::Pi()*4/3, TMath::Pi()*5/3};
@@ -638,8 +630,6 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
       dr = dx*TMath::Cos(forward[iF]) + dy*TMath::Sin(forward[iF]);
       double r_btw = (2*r_out + comp_between[index[iF]]);
       r_out = (r_btw - third)/2;
-      double dr_back = dx_back*TMath::Cos(forward[iF]) + dy_back*TMath::Sin(forward[iF]);
-      dr += dr_back;
       if(debug && TString(hc->GetName()).Contains(whichOverlap)) cout << r_out << " = (" << r_out << " + " << comp_between[index[iF]] << " - " << third << ")/2" << endl;
     } else if(TString(hc->GetName()).Contains("base - kap")){
       // Get test values
@@ -652,8 +642,6 @@ void FillAllSides(TString geo, double max, TH2Poly* hc, double nom,
 
       r_out = r_out1 + r_out2;
       dr = dx*TMath::Cos(forward[iF]) + dy*TMath::Sin(forward[iF]);
-      double dr_back = dx_back*TMath::Cos(forward[iF]) + dy_back*TMath::Sin(forward[iF]);
-      dr += dr_back;
     } else {
       r_out = (rand[index[iF]] - secondary)/2;
       if(debug && TString(hc->GetName()).Contains(whichOverlap)) cout << hc->GetName() << ": " << r_out << " = (" << rand[index[iF]] << " - " << secondary << ")/2" << endl;
@@ -716,10 +704,16 @@ void moduleTolerances(){
 			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor", 
 			 "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor",
 			 "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor", 
-			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", };
-			 //"Gaussian_PCBplus25_oldSensor", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor", };
-  //Dist = {"Gaussian_PCBplus25_oldSensor", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor"};
-  //Dist = {"Gaussian"};
+			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor",
+			 "Gaussian_PCBplus25_oldSensor", "Gaussian_newSensor", "Gaussian_PCBplus25_newSensor", };
+//  vector<string> Dist = {"Gaussian", "Gaussian_newSensor", "Gaussian_midSensor", 
+//			 "Gaussian_Kaptonplus25", "Gaussian_Kaptonplus50", "Gaussian_Kaptonplus75", 
+//			 "Gaussian_Kaptonminus25", "Gaussian_Kaptonminus50", "Gaussian_Kaptonminus75", 
+//			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor", 
+//			 "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor",
+//			 "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor", 
+//			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", };
+  Dist = {"Gaussian"};
   Geometry = {"Full"};
   for(auto &geo_str : Geometry){
     vector< pair< pair< string, string>, pair< pair< double, double >, double > > > worst_values;
@@ -743,7 +737,7 @@ void moduleTolerances(){
       double baseplate_pinhole_err = 0.100, baseplate_pinhole_theta = 2*TMath::Pi();
       double pcb_w = pcb_w_const, sensor_w = sensor_w_const, kapton_w = kapton_w_const, baseplate_w = baseplate_w_const;
       double pcb_w_err = 0.1, sensor_w_err = 0.02, kapton_w_err = 0.05, baseplate_w_err = 0.05;
-      double pcb_shift_r = 0.04, pcb_shift_theta = 2*TMath::Pi();
+      double PcbToSen_shift_r = 0.04, PcbToSen_shift_theta = 2*TMath::Pi();
       double sensor_shift_x= 0.500, sensor_shift_y = 0.050, sensor_shift_theta = 0.050; //theta is radians
       double baseValue_total = sensor_w;
       double base_kap_min = 0.100;
@@ -751,7 +745,7 @@ void moduleTolerances(){
       pair<double, double> backside_x_err = make_pair(0.2133, 0.1769);
       pair<double, double> backside_y_err = make_pair(0.500, 0.000);
       int max = 100000;
-      //max = 300;
+      max = 1000;
 
       int nbins = 650;
       if(geo == "Half" || geo == "Semi") nbins = 650;
@@ -827,7 +821,7 @@ void moduleTolerances(){
 	sensor_shift_y = 0.050;
       }
       vector<double> pcb, kapton, baseplate, sensor, pcb_bond, kapton_bond, sensor_bond, pcb_backside, kapton_backside, sensor_backside, sensor_backside_between;
-      double kap_x_shift = 0., sen_x_shift = 0., kap_y_shift = 0., sen_y_shift = 0.;
+      double KapToBas_x_shift = 0., SenToKap_x_shift = 0., KapToBas_y_shift = 0., SenToKap_y_shift = 0.;
       map<TString, TH2Poly*> components {
       	{"pcb", new TH2Poly("pcb_2d", ";" + geo + " " + type + " Width [mm];Width [mm];Components", -1*axis, axis, -1*axis, axis)},
       	{"kap", new TH2Poly("kap_2d", ";" + geo + " " + type + " Width [mm];Width [mm];Components", -1*axis, axis, -1*axis, axis)},
@@ -875,7 +869,7 @@ void moduleTolerances(){
           cout << "kapton: " << kapton_w*kapton_mean << " +/- " << kapton_w_err*kapton_sigma << endl;
           cout << "sensor: " << sensor_w*kapton_mean << " +/- " << sensor_w_err*kapton_sigma << endl;
           cout << "center: " << baseplate_err << endl;
-          cout << "PCB shift: " << pcb_shift_r<< endl;
+          cout << "PCB shift: " << PcbToSen_shift_r<< endl;
           cout << "Sensor shift: " << sensor_shift_x << endl;
 	}
 	//Get widths for each component and each side
@@ -899,48 +893,46 @@ void moduleTolerances(){
           sensor_backside_between.push_back(getCutoffInBetween(sensor.at(iS), 15.590));
         }
         //Get shift in x and y, soon add theta also
-        double 
-        kap_x_shift = getRandomValue(0, baseplate_err, type);
-        kap_y_shift = getRandomValue(0, baseplate_err, type);
-        pair<double, double> pcb_shift = GetCartesian("", getRandomValue(0, pcb_shift_r, type), getRandomValue(0, pcb_shift_theta, type), 0., 0.);
-        sen_x_shift = getRandomValue(0, sensor_shift_x, type);
-        sen_y_shift = getRandomValue(0, sensor_shift_y, type);
+        pair<double, double> KapToBas_shift = GetCartesian("", getRandomValue(0, baseplate_err, type), getRandomValue(0, PcbToSen_shift_theta, type), 0., 0.);
+        pair<double, double> PcbToSen_shift = GetCartesian("", getRandomValue(0, PcbToSen_shift_r, type), getRandomValue(0, PcbToSen_shift_theta, type), 0., 0.);
+        SenToKap_x_shift = getRandomValue(0, sensor_shift_x, type);
+        SenToKap_y_shift = getRandomValue(0, sensor_shift_y, type);
 
         //Component values
-        FillAllSides(geo, double(max), components["bas"], baseValue_total, baseplate, kap_x_shift,     kap_y_shift,      width_new, center["new"]);
-        FillAllSides(geo, double(max), components["kap"], baseValue_total,    kapton, kap_x_shift,     kap_y_shift,      width_new, center["new"]);
-        FillAllSides(geo, double(max), components["sen"], baseValue_total,    sensor, sen_x_shift,     sen_y_shift,      width_new, center["new"]);
-        FillAllSides(geo, double(max), components["pcb"], baseValue_total, 	 pcb, pcb_shift.first, pcb_shift.second, width_new, center["new"]);
+        FillAllSides(geo, double(max), components["bas"], baseValue_total, baseplate, KapToBas_shift.first,     KapToBas_shift.second,      width_new, center["new"]);
+        FillAllSides(geo, double(max), components["kap"], baseValue_total,    kapton, KapToBas_shift.first,     KapToBas_shift.second,      width_new, center["new"]);
+        FillAllSides(geo, double(max), components["sen"], baseValue_total,    sensor, SenToKap_x_shift,     SenToKap_y_shift,      width_new, center["new"]);
+        FillAllSides(geo, double(max), components["pcb"], baseValue_total, 	 pcb, PcbToSen_shift.first, PcbToSen_shift.second, width_new, center["new"]);
         //Overlap Values
-        FillAllSides(geo, double(max), overlap["sen_pcb_stack_hist"], baseValue_total,       pcb, pcb_shift.first, pcb_shift.second, 
+        FillAllSides(geo, double(max), overlap["sen_pcb_stack_hist"], baseValue_total,       pcb, PcbToSen_shift.first, PcbToSen_shift.second, 
 										       width_new, center["new"],
-										     	  sensor, 0., 0.);
-        FillAllSides(geo, double(max), overlap["pcb_bas_stack_hist"], baseValue_total, baseplate, kap_x_shift, kap_y_shift, 
+										     	  sensor);
+        FillAllSides(geo, double(max), overlap["pcb_bas_stack_hist"], baseValue_total, baseplate, PcbToSen_shift.first + KapToBas_shift.first + SenToKap_x_shift, PcbToSen_shift.second + KapToBas_shift.second + SenToKap_y_shift,
 										       width_new, center["new"],
-										     	     pcb, pcb_shift.first, pcb_shift.second);
-        FillAllSides(geo, double(max), overlap["sen_bas_stack_hist"], baseValue_total, baseplate, kap_x_shift, kap_y_shift, 
+										     	     pcb);
+        FillAllSides(geo, double(max), overlap["sen_bas_stack_hist"], baseValue_total, baseplate, KapToBas_shift.first + SenToKap_x_shift, KapToBas_shift.second + SenToKap_y_shift, 
 										       width_new, center["new"],
-										          sensor, 0., 0.);
-        FillAllSides(geo, double(max), overlap["pcb_kap_stack_hist"], baseValue_total,    kapton, kap_x_shift, kap_y_shift, 
+										          sensor);
+        FillAllSides(geo, double(max), overlap["pcb_kap_stack_hist"], baseValue_total,    kapton, PcbToSen_shift.first + SenToKap_x_shift, PcbToSen_shift.second + SenToKap_y_shift, 
 										       width_new, center["new"],
-										     	     pcb, pcb_shift.first, pcb_shift.second);
-        FillAllSides(geo, double(max), overlap["bas_kap_stack_hist"], baseValue_total,    kapton, sen_x_shift, sen_y_shift,
+										     	     pcb);
+        FillAllSides(geo, double(max), overlap["bas_kap_stack_hist"], baseValue_total,    kapton, KapToBas_shift.first + SenToKap_x_shift, KapToBas_shift.second + SenToKap_y_shift,
 										       width_new, center["new"],
-										       baseplate, kap_x_shift + sen_x_shift, kap_y_shift + sen_y_shift, base_kap_min,
-                								       sensor, 0., 0.); 
-        FillAllSides(geo, double(max), overlap["sen_kap_stack_hist"], baseValue_total,    kapton, 0., 0.,  
+										       baseplate, base_kap_min,
+                								          sensor);
+        FillAllSides(geo, double(max), overlap["sen_kap_stack_hist"], baseValue_total,    kapton, SenToKap_x_shift, SenToKap_y_shift,
 										       width_new, center["new"],
-										          sensor, sen_x_shift, sen_y_shift);
-        FillAllSides(geo, double(max), overlap["kap_pcb_hist"],       baseValue_total, kapton_bond, kap_x_shift, kap_y_shift, 
+										          sensor);
+        FillAllSides(geo, double(max), overlap["kap_pcb_hist"],       baseValue_total, kapton_bond, PcbToSen_shift.first + SenToKap_x_shift, PcbToSen_shift.second + SenToKap_y_shift, 
 										       width_new, center["new"],
-										  	  pcb_bond, pcb_shift.first, pcb_shift.second, gold_min);
-        FillAllSides(geo, double(max), overlap["sen_pcb_hist"],       baseValue_total, sensor_bond, 0., 0.,
+										  	  pcb_bond, gold_min);
+        FillAllSides(geo, double(max), overlap["sen_pcb_hist"],       baseValue_total, sensor_bond, PcbToSen_shift.first, PcbToSen_shift.second,
 										       width_new, center["new"],
-										  	  pcb_bond, pcb_shift.first, pcb_shift.second, gold_min);
-        //FillAllSides(geo, double(max), overlap["sen_pcb_kap_hist"],   baseValue_total,    pcb_backside, pcb_shift.first + sen_x_shift, pcb_shift.second + sen_y_shift,
+										  	  pcb_bond, gold_min);
+        //FillAllSides(geo, double(max), overlap["sen_pcb_kap_hist"],   baseValue_total,    pcb_backside, PcbToSen_shift.first + SenToKap_x_shift, PcbToSen_shift.second + SenToKap_y_shift,
 	//									       width_new, center["new"],
-	//									       sensor_backside, sen_x_shift, sen_y_shift, backside_min,
-	//									       kapton_backside, kap_x_shift, kap_y_shift, sensor_backside_between, backside_x_err, backside_y_err);
+	//									       sensor_backside, SenToKap_x_shift, SenToKap_y_shift, backside_min,
+	//									       kapton_backside, KapToBas_shift.first, KapToBas_shift.second, sensor_backside_between, backside_x_err, backside_y_err);
       }
 
       for(std::map<TString,TH2Poly*>::iterator iter = components.begin(); iter != components.end(); ++iter){
@@ -951,14 +943,16 @@ void moduleTolerances(){
         print2DPlots(iter->second, geo,	TString(nameMap[iter->first]), type+"/"+geo + "_" + type + "_Diff_Width_" + iter->first, width_new);
       }
 
-      map<TString, TH1D*> overlap_1D;
+      map<TString, TH1D*> overlap_1D, overlap_1D_integrate;
       int iC = 0;
       for(std::map<TString,TH2Poly*>::iterator iter = overlap.begin(); iter != overlap.end(); ++iter){
         vector<TH1*> hist = IntegrateHex(iter->second, geo, type, center["new"], width_new, axis, step, nPeaks);
-        normalize(hist);
-        prepHists(hist, false, false, false, {colors[iC], colors[iC], colors[iC], colors[iC]});
+        prepHists(hist, true, true, false, {colors[iC], colors[iC], colors[iC], colors[iC]});
+        vector<TH1*> intHist = getIntegratedHist(hist, false, true, true);
         for(auto iP = 0; iP != nPeaks + 1; iP++)
           overlap_1D.insert(pair<TString, TH1D*>(iter->first + "_Peak" + to_string(iP), (TH1D*)hist[iP]));
+        for(auto iP = 0; iP != nPeaks + 1; iP++)
+          overlap_1D_integrate.insert(pair<TString, TH1D*>(iter->first + "_integrate_Peak" + to_string(iP), (TH1D*)intHist[iP]));
         iC++;
       }
 
@@ -974,6 +968,12 @@ void moduleTolerances(){
         diff->Update();
         diff->SetTitle(name);
         diff->Print(outputDir+"/"+type+"/"+name+".pdf");
+        //integral
+        diff = drawCompMatt({overlap_1D_integrate["pcb_bas_stack_hist_integrate" + pName], overlap_1D_integrate["pcb_kap_stack_hist_integrate" + pName], overlap_1D_integrate["bas_kap_stack_hist_integrate" + pName]}, leg_diff, 0.001, nullptr, "hist", true);
+        name = geo + "_" + type + "_diff_integral" + pName;
+        diff->Update();
+        diff->SetTitle(name);
+        diff->Print(outputDir+"/"+type+"/"+name+".pdf");
 
         auto leg_sen_diff = prepLegends({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, 
                                     {overlap_1D["sen_bas_stack_hist" + pName]->GetName(), overlap_1D["sen_pcb_stack_hist" + pName]->GetName(), overlap_1D["sen_kap_stack_hist" + pName]->GetName()}, "P");
@@ -981,6 +981,12 @@ void moduleTolerances(){
         leg_sen_diff->SetY1NDC(leg_sen_diff->GetY2NDC() - 0.3);
         TCanvas* sen_diff = drawCompMatt({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, leg_sen_diff, 0.001, nullptr, "hist", true);
         name = geo + "_" + type + "_sen_diff" + pName;
+        sen_diff->Update();
+        sen_diff->SetTitle(name);
+        sen_diff->Print(outputDir+"/"+type+"/"+name+".pdf");
+        //integral
+        sen_diff = drawCompMatt({overlap_1D_integrate["sen_bas_stack_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_stack_hist_integrate" + pName], overlap_1D_integrate["sen_kap_stack_hist_integrate" + pName]}, leg_sen_diff, 0.001, nullptr, "hist", true);
+        name = geo + "_" + type + "_sen_diff_integral" + pName;
         sen_diff->Update();
         sen_diff->SetTitle(name);
         sen_diff->Print(outputDir+"/"+type+"/"+name+".pdf");
@@ -994,6 +1000,13 @@ void moduleTolerances(){
         //TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName], overlap_1D["sen_pcb_kap_hist" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
         TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
         name = geo + "_" + type + "_bond_diff" + pName;
+        bond_diff->Update();
+        bond_diff->SetTitle(name);
+        bond_diff->Print(outputDir+"/"+type+"/"+name+".pdf");
+        //integral
+        //bond_diff = drawCompMatt({overlap_1D_integrate["sen_pcb_hist_integrate" + pName], overlap_1D_integrate["kap_pcb_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_kap_hist_integrate" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
+        bond_diff = drawCompMatt({overlap_1D_integrate["sen_pcb_hist_integrate" + pName], overlap_1D_integrate["kap_pcb_hist_integrate" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
+        name = geo + "_" + type + "_bond_diff_integral" + pName;
         bond_diff->Update();
         bond_diff->SetTitle(name);
         bond_diff->Print(outputDir+"/"+type+"/"+name+".pdf");
@@ -1027,8 +1040,6 @@ void moduleTolerances(){
         sensor_backside_between_nom.push_back(getCutoffInBetween(sensor.at(iS), 15.590));
 
 
-        cout << "Guard Bond" << type_str << peak << ": " << (sensor_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min << endl;
-        cout << "Shield Bond" << type_str << peak << ": " << (kapton_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min << endl;
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Guard Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0))); 
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Shield Bond"), 	make_pair((kapton_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0)));
         //fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Backside Bond"),
@@ -1036,12 +1047,12 @@ void moduleTolerances(){
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "PCB to Base"), 	make_pair((baseplate_nom[iS] - pcb_nom[iS])/2, 0.0)));
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Sen to Base"),	make_pair((baseplate_nom[iS] - sensor_nom[iS])/2, 0.0)));
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "PCB to Kap"), 	make_pair((kapton_nom[iS] - pcb_nom[iS])/2, 0.0)));
-        fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Base to Kap"), 	make_pair((kapton_nom[iS] - baseplate_nom[iS])/2 + (kapton_nom[iS] - sensor_nom[iS])/2 - base_kap_min, 0.0)));
+        fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Base to Kap"), 	make_pair((kapton_nom[iS] - baseplate_nom[iS])/2 + 0.185 - base_kap_min, 0.0)));
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Sen to Kap"), 	make_pair((kapton_nom[iS] - sensor_nom[iS])/2, 0.0)));
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Sen to PCB"), 	make_pair((pcb_nom[iS] - sensor_nom[iS])/2, 0.0)));
       }
 
-      for(std::map<TString,TH1D*>::iterator iter = overlap_1D.begin(); iter != overlap_1D.end(); ++iter){
+      for(std::map<TString,TH1D*>::iterator iter = overlap_1D_integrate.begin(); iter != overlap_1D_integrate.end(); ++iter){
         if(TString(iter->first).Contains("_Peak0")) continue;
 
         vector<double> max_tol = findHighXbin(iter->second);
@@ -1056,6 +1067,20 @@ void moduleTolerances(){
         else if(iter->first.Contains("Peak3")) peak = "_Peak3";
 
         worst_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(make_pair(max_tol[0]/1000, max_tol[1]/1000), max_tol[2])));
+      }
+
+      for(std::map<TString,TH1D*>::iterator iter = overlap_1D.begin(); iter != overlap_1D.end(); ++iter){
+        if(TString(iter->first).Contains("_Peak0")) continue;
+
+        TString name_buff = iter->first;
+        name_buff.ReplaceAll("_Peak1", "");
+        name_buff.ReplaceAll("_Peak2", "");
+        name_buff.ReplaceAll("_Peak3", "");
+        string name = nameMap[name_buff];
+        string peak = "";
+             if(iter->first.Contains("Peak1")) peak = "_Peak1";
+        else if(iter->first.Contains("Peak2")) peak = "_Peak2";
+        else if(iter->first.Contains("Peak3")) peak = "_Peak3";
 
         //Get Fit
         TString dist_type = "gausn";
@@ -1065,7 +1090,7 @@ void moduleTolerances(){
         TF1* avg_param = (TF1*)iter->second->GetFunction(dist_type);
         fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(avg_param->GetParameter(1), avg_param->GetParameter(2))));
       }
-      
+
       TFile *outFile = new TFile(outputDir+"/"+type+"/"+name+".root", "RECREATE");
       for(std::map<TString,TH2Poly*>::iterator iter = components.begin(); iter != components.end(); ++iter){
         iter->second->Write();
