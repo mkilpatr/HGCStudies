@@ -18,7 +18,7 @@ using namespace EstTools;
 using json = nlohmann::json;
 
 TString outputDir = "";
-TString baseDir = "moduleTolerances_complete_012921_backsideTestX";
+TString baseDir = "moduleTolerances_complete_020321_TestKaptonPlot";
 vector<Color_t> colors;
 bool debug = false;
 TString whichOverlap = "Backside Bond";
@@ -32,7 +32,11 @@ vector<TString> Order = {
 			 "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor", "Gaussian_Kaptonminus0_oldSensor", 
 			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus25_oldSensor",  
 			 "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus50_oldSensor",  
-			 "Gaussian_Kaptonplus75_newSensor", "Gaussian_Kaptonplus75_midSensor", "Gaussian_Kaptonplus75_oldSensor"};
+			 "Gaussian_Kaptonplus75_newSensor", "Gaussian_Kaptonplus75_midSensor", "Gaussian_Kaptonplus75_oldSensor",
+                         "Gaussian_PCBplus75", "Gaussian_PCBplus50", "Gaussian_PCBplus25", "Gaussian_PCBminus75", "Gaussian_PCBminus50", "Gaussian_PCBminus25",
+			 "Gaussian_PCBplus25_oldSensor", "Gaussian_PCBplus25_newSensor",
+			 "CustomGaus", "CustomFlat", 
+                         };
 
 std::map<TString, TString> latexMap{
   {"Custom", ""},
@@ -59,10 +63,8 @@ std::map<TString, TString> latexMap{
   {"Kaptonplus75", R"(Kapton + 75 $\mu m$)"},
   {"Nominal", "Nominal"},
   {"Gaussian", "Gaussian"},
-  {"Landau", "Landau"},
   {"Flat", "Flat"},
   {"CustomGaus", "Custom Gaussian"},
-  {"CustomLandau", "Custom Landau"},
   {"CustomFlat", "Custom Flat"},
   {"newSensor", R"([50 $\mu m$])"},
   {"midSensor", R"([100 $\mu m$])"},
@@ -102,10 +104,8 @@ std::map<TString, TString> plotMap{
   {"Kaptonplus75", R"(Kapton + 75 #mum)"},
   {"Nominal", "Nominal"},
   {"Gaussian", "Gaussian"},
-  {"Landau", "Landau"},
   {"Flat", "Flat"},
   {"CustomGaus", "Custom Gaussian"},
-  {"CustomLandau", "Custom Landau"},
   {"CustomFlat", "Custom Flat"},
   {"newSensor", R"([50 #mum])"},
   {"midSensor", R"([100 #mum])"},
@@ -120,10 +120,14 @@ std::map<TString, TString> plotMap{
 void print2DPlots(TH2Poly *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb", double width = 0.2);
 void print2DPlots(TH2D *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb");
 void moduleTolerances();
+void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex");
+void printWorstTableLatex(json jtot, TString outputfile="/tmp/yields.tex"); 
+void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
   moduleTolerances();
+  //RedoLatexTable("Full");
 }
 
 float Round(float var, float decimal = 1000.){ 
@@ -131,7 +135,7 @@ float Round(float var, float decimal = 1000.){
     return (float)value / decimal; 
 } 
 
-void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
+void printToleranceTableLatex(json jtot, TString outputfile){
   ofstream outfile(outputfile);
   Quantity::printStyle = Quantity::LATEX;
 
@@ -155,6 +159,8 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
   outfile << R"(\def\arraystretch{0.5})" << endl;
   outfile << R"(\usepackage[margin=1cm]{geometry})" << endl;
   outfile << R"(\begin{document})" << endl;
+
+  assert(jtot);
 
   for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
     if(type.key() == "BinNum") continue;
@@ -195,6 +201,8 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
               TString buff = TString(comp.key());
               buff.ReplaceAll("Sensor", "SplitSensor");
               buff.ReplaceAll("Gaussian_", "");
+              if(buff.Contains("mid")) buff = "midSplitSensor";
+              if(buff.Contains("old")) buff = "oldSplitSensor";
               if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
 
               outfile << translateString(buff, latexMap, "_", ", "); 
@@ -230,7 +238,7 @@ void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
   outfile.close();
 }//for country!
 
-void printWorstTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
+void printWorstTableLatex(json jtot, TString outputfile){
   ofstream outfile(outputfile);
   Quantity::printStyle = Quantity::LATEX;
 
@@ -295,6 +303,15 @@ void printWorstTableLatex(json jtot, TString outputfile="/tmp/yields.tex"){
 
   outfile.close();
 }//for country!
+
+void RedoLatexTable(TString geo){
+    std::ifstream myFile(baseDir+"/Test" + geo + "/" + geo + "_moduleTolerances.json");
+    json jtot;
+    myFile >> jtot;
+    printToleranceTableLatex(jtot, baseDir+"/Test" + geo + "/" + geo + "_moduleTolerances.tex");
+    printWorstTableLatex(jtot, baseDir+"/Test" + geo + "/" + geo + "_worst_moduleTolerances.tex");
+
+}
 
 double GetWidthToA(double width){
   //width/2 == a/2*tan(pi/6)
@@ -535,8 +552,6 @@ double getRandomValue(double width, double error, TString type){
   double rand = 0.;
   if(type.Contains("Gaus"))
     rand = gRandom->Gaus(width, error/3);
-  else if(type.Contains("Land"))
-    rand = gRandom->Landau(width, error/3);
   else if(type.Contains("Flat"))
     rand = gRandom->Uniform(width - error, width + error);
 
@@ -828,8 +843,8 @@ void moduleTolerances(){
   colors.push_back(kAzure);
 
   vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
-  vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor", "Landau", "Flat", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor", 
-			 "CustomGaus", "CustomLandau", "CustomFlat", 
+  vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor", "Flat", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor", 
+			 "CustomGaus", "CustomFlat", 
 			 "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75", 
 			 "Gaussian_Kaptonplus25_oldSensor", "Gaussian_Kaptonplus50_oldSensor", "Gaussian_Kaptonplus75_oldSensor", 
 			 "Gaussian_Kaptonminus25_oldSensor", "Gaussian_Kaptonminus50_oldSensor", "Gaussian_Kaptonminus75_oldSensor", "Gaussian_Kaptonminus150_oldSensor",  "Gaussian_Kaptonminus170_oldSensor",
@@ -838,23 +853,14 @@ void moduleTolerances(){
 			 "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor",                                         
 			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", "Gaussian_Kaptonminus150_midSensor",  "Gaussian_Kaptonminus170_midSensor",
 			 "Gaussian_PCBplus25_oldSensor", "Gaussian_PCBplus25_newSensor", };
-//  Dist = {"Gaussian_Kaptonminus0_oldSensor", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor", 
-//			 "Gaussian_Kaptonminus25_oldSensor", "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus25_midSensor",  
-//			 "Gaussian_Kaptonminus50_oldSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus50_midSensor",  
-//			 "Gaussian_Kaptonminus75_oldSensor", "Gaussian_Kaptonminus75_newSensor", "Gaussian_Kaptonminus75_midSensor",  
-//			 "Gaussian_Kaptonminus150_oldSensor", "Gaussian_Kaptonminus150_newSensor", "Gaussian_Kaptonminus150_midSensor",  
-//			 "Gaussian_Kaptonminus170_oldSensor", "Gaussian_Kaptonminus170_newSensor", "Gaussian_Kaptonminus170_midSensor",  
-//			 "Gaussian_Kaptonplus25_oldSensor", "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus25_midSensor",  
-//			 "Gaussian_Kaptonplus50_oldSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus50_midSensor",  
-//			 "Gaussian_Kaptonplus75_oldSensor", "Gaussian_Kaptonplus75_newSensor", "Gaussian_Kaptonplus75_midSensor"};
-
-//  vector<string> Dist = {"Gaussian", "Gaussian_newSensor", "Gaussian_midSensor", 
-//			 "Gaussian_Kaptonplus25", "Gaussian_Kaptonplus50", "Gaussian_Kaptonplus75", 
-//			 "Gaussian_Kaptonminus25", "Gaussian_Kaptonminus50", "Gaussian_Kaptonminus75", 
-//			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor", 
-//			 "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor",
-//			 "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor", 
-//			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", };
+  Dist = {"Gaussian_Kaptonminus0_oldSensor", "Flat", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor", 
+			 "Gaussian_Kaptonplus25_oldSensor", "Gaussian_Kaptonplus50_oldSensor", "Gaussian_Kaptonplus75_oldSensor", 
+			 "Gaussian_Kaptonminus25_oldSensor", "Gaussian_Kaptonminus50_oldSensor", "Gaussian_Kaptonminus75_oldSensor", "Gaussian_Kaptonminus150_oldSensor",  "Gaussian_Kaptonminus170_oldSensor",
+			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor",                                         
+			 "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor", "Gaussian_Kaptonminus150_newSensor",  "Gaussian_Kaptonminus170_newSensor",
+			 "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor",                                         
+			 "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", "Gaussian_Kaptonminus150_midSensor",  "Gaussian_Kaptonminus170_midSensor",
+			 };
   //Dist = {"Gaussian"};
   Geometry = {"Full"};
   for(auto &geo_str : Geometry){
@@ -892,7 +898,7 @@ void moduleTolerances(){
       int nBadModules = 0;
 
       int max = 100000;
-      //max = 3;
+      max = 300;
 
       int nbins = 650;
       //nbins = 1500;
@@ -1141,7 +1147,7 @@ void moduleTolerances(){
           if(TString(iter->first).Contains("bas_kap_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus"))){
             TString kaptonType = TString(type + "_integrate_Peak" + to_string(iP));
             overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)intHist[iP]));
-            if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor", ""));
+            if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_integrate_Peak0", ""));
           }
         }
         iC++;
@@ -1228,13 +1234,6 @@ void moduleTolerances(){
         pcb_backside_x_nom.push_back(GetWidthToA(pcb_nom.at(iS)) - (2*6.2648));
         kapton_backside_x_nom.push_back(GetWidthToA(kapton_nom.at(iS)) - (2*7.2393));
 
-        //Backside = ((2*(pcb - sensor) + sensor_btw) - kapton)/2
-
-        cout << "Backside Bond Y" << endl;
-        cout << "PCB: " << pcb_backside_nom[iS] << endl;
-        cout << "Backside Bond X" << endl;
-        cout << "PCB: " << pcb_backside_x_nom[iS] << ", Kapton: " << kapton_backside_x_nom[iS] << endl;
-
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Guard Bond"), 	make_pair((sensor_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0))); 
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Shield Bond"), 	make_pair((kapton_bond_nom[iS] - pcb_bond_nom[iS])/2 - gold_min, 0.0)));
         fit_values.push_back(make_pair(make_pair(type_str + peak + "_Nominal", "Backside Bond Y Position"), make_pair(3.302 - pcb_backside_nom[iS] - backside_min, 0.0)));
@@ -1261,11 +1260,8 @@ void moduleTolerances(){
         else if(iter->first.Contains("Peak3")) peak = "_Peak3";
 
         //Get Fit
-        TString dist_type = "gausn";
-        if(type.Contains("Land")) dist_type = "landau";
-
-        iter->second->Fit(dist_type);
-        TF1* avg_param = (TF1*)iter->second->GetFunction(dist_type);
+        iter->second->Fit("gausn");
+        TF1* avg_param = (TF1*)iter->second->GetFunction("gausn");
         if(!isnan(avg_param->GetParameter(1))) fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(avg_param->GetParameter(1), avg_param->GetParameter(2))));
         else fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(0., 0.)));
       }
@@ -1310,20 +1306,31 @@ void moduleTolerances(){
         vector<TH1*> plots;
         auto leg = prepLegends({}, {}, "P");
         for(std::map<TString,TH1D*>::iterator iter = overlap_1D_integrate_minus.begin(); iter != overlap_1D_integrate_minus.end(); ++iter){
-          //cout << "peak " << iP << ", split: " << overlap_1D_integrate_minus_split[iK] << ", initial: " << iter->first << endl;
+          if(TString(iter->first).Contains("Peak0")) continue;
+          cout << "peak " << iP << ", split: " << overlap_1D_integrate_minus_split[iK] << ", initial: " << iter->first << endl;
           if(!TString(iter->first).Contains(overlap_1D_integrate_minus_split[iK])) continue;
           addLegendEntry(leg, iter->second, iter->first, "P");
           plots.push_back(iter->second);
         }
+        cout << "How many plots? " << plots.size() << endl;
         leg->SetTextSize(0.03);
+        cout << "How many plots? " << plots.size() << endl;
         leg->SetY1NDC(leg->GetY2NDC() - 0.3);
-        prepHists(plots, false, false, false, colors);
+        cout << "How many plots? " << plots.size() << endl;
+        prepHists(plots, false, false, false, {kRed, kBlue, kMagenta});
+        cout << "How many plots? " << plots.size() << endl;
         //integral
+        cout << "How many plots? " << plots.size() << endl;
         TCanvas* diff = drawCompMatt(plots, leg, -1., nullptr, "hist", true);
+        cout << "How many plots? " << plots.size() << endl;
         TString name = geo + "_" + overlap_1D_integrate_minus_split[iK] + "_diff_kaptonAll" + pName;
+        cout << "How many plots? " << plots.size() << endl;
         diff->Update();
+        cout << "How many plots? " << plots.size() << endl;
         diff->SetTitle(name);
+        cout << "How many plots? " << plots.size() << endl;
         diff->Print(outputDir+"/"+name+".pdf");
+        cout << "How many plots? " << plots.size() << endl;
       }
     } 
  
@@ -1447,25 +1454,6 @@ void moduleTolerances(){
 
       }
     }// for different module shape
-
-    map<TString, pair<double, double> > averages;
-    for ( const pair< pair< string, string>, pair< double, double > > &avg : fit_values ){
-      if(avg.first.first == "Nominal") continue;
-      double average = 0., error = 0.;
-      map<TString, pair<double, double> >::iterator it = averages.find(avg.first.second);
-      if(it != averages.end()){
-        average = it->second.first + avg.second.first;
-        error = it->second.second + avg.second.second;
-        averages.erase(it);
-      } else {
-        average = avg.second.first;
-        error = avg.second.second;
-      }
-      averages.insert(pair<TString, pair<double, double> >(avg.first.second, pair<double, double>(average, error)));
-    }
-    for(std::map<TString,pair<double, double> >::iterator iter = averages.begin(); iter != averages.end(); ++iter){
-      cout << "Average of " << iter->first << " = " << iter->second.first/Dist.size() << " +/- " << iter->second.second/Dist.size() << endl;
-    }
   }
 }
 
