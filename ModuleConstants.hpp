@@ -7,6 +7,18 @@ namespace constants {
 
   //Define Constant Widths
   const double pcb_w_const = 166.64, sensor_w_const = 166.57, kapton_w_const = 166.94, baseplate_w_const = 166.94;
+
+  double baseplate_center = 3.05, baseplate_err = 0.05;
+  double baseplate_pinhole_err = 0.100, baseplate_pinhole_theta = 2*TMath::Pi();
+  double pcb_w = pcb_w_const, sensor_w = sensor_w_const, kapton_w = kapton_w_const, baseplate_w = baseplate_w_const;
+  double pcb_w_err = 0.1, sensor_w_err = 0.02, kapton_w_err = 0.05, baseplate_w_err = 0.05;
+  double PcbToSen_shift_r = 0.04, PcbToSen_shift_theta = 2*TMath::Pi();
+  double sensor_shift_x= 0.500, sensor_shift_y = 0.050, sensor_shift_theta = 0.050; //theta is radians
+  double baseValue_total = sensor_w;
+  double base_kap_min = 0.100;
+  double gold_min = 0.25, gold_size = 1.500, backside_min = 0.250;
+  pair<double, double> backside_x_err = make_pair(0.2133, 0.1769);
+  pair<double, double> backside_y_err = make_pair(0.250, 0.000);
   
   int max = 3000;
 
@@ -33,7 +45,7 @@ namespace constants {
                          "Gaussian_PCBminus25_newSensor", "Gaussian_PCBminus50_newSensor", "Gaussian_PCBminus75_newSensor",
                          "Gaussian_PCBminus25_midSensor", "Gaussian_PCBminus50_midSensor", "Gaussian_PCBminus75_midSensor",
                         }; 
-  //vector<string> Dist = {"Gaussian"};
+  //vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor"};
   vector<string> Geometry = {"Full"};
 
   const vector<TString> Order = {
@@ -81,6 +93,7 @@ namespace constants {
     {"TotalBadModules", ""},
     {"Sensor", ""},
     {"otherCenter", R"(center $= + 29 \mu m$)"},
+    {"PCBminus0", R"(PCB - 0 $\mu m$)"},
     {"PCBminus25", R"(PCB - 25 $\mu m$)"},
     {"PCBplus25", R"(PCB + 25 $\mu m$)"},
     {"PCBminus50", R"(PCB - 50 $\mu m$)"},
@@ -122,6 +135,7 @@ namespace constants {
     {"TotalBadModules", ""},
     {"Sensor", ""},
     {"otherCenter", R"(center $= + 29 #mum)"},
+    {"PCBminus0", R"(PCB - 0 #mum)"},
     {"PCBminus25", R"(PCB - 25 #mum)"},
     {"PCBplus25", R"(PCB + 25 #mum)"},
     {"PCBminus50", R"(PCB - 50 #mum)"},
