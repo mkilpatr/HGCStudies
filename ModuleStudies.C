@@ -77,7 +77,7 @@ void printToleranceTableLatex(json jtot, TString outputfile){
     outfile << R"(\begin{center})" << endl;
          if(type.key() == "KaptonMultiDist") outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
     else if(type.key() == "TotalBadModules") outfile << R"(\begin{longtable}{| c | c |})" << endl;
-    else if(TString(type.key()).Contains("Bad Components")) outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
+    else if(TString(type.key()).Contains("Bad Components")) outfile << R"(\begin{longtable}{| c | c | c | c | c | c |})" << endl;
     else                                outfile << R"(\begin{longtable}{| c | c | c | c |})" << endl;
     outfile << R"(\hline )" << endl;
 
@@ -87,12 +87,11 @@ void printToleranceTableLatex(json jtot, TString outputfile){
     //key for value type
          if(type.key() == "KaptonMultiDist") outfile << "Component Overlaps & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
     else if(type.key() == "TotalBadModules") outfile << "Component Overlaps & \t Total Number of Bad Modules" << R"( \\)" << endl;
-    else if(TString(type.key()).Contains("Bad Components")) outfile << "Component Overlaps & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
+    else if(TString(type.key()).Contains("Bad Components")) outfile << "Component Overlaps & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
     else                                outfile << "Component Overlaps & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
     if(type.key() == "TotalBadModules"){
       outfile << R"(\hline)" << endl;
       for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
-//cout << type.key() << " " << comp.key() << endl;
         if(TString(comp.key()).Contains("Nominal")) continue;
         TString buff = TString(comp.key());
         buff.ReplaceAll("Gaussian_", "");
@@ -104,11 +103,13 @@ void printToleranceTableLatex(json jtot, TString outputfile){
       outfile << R"(\hline)" << endl;
       for (int i = 0; i != (signed)constants::Order.size(); i++){
       for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
-//cout << type.key() << " " << comp.key() << endl;
         if(TString(comp.key()).Contains("Nominal")) continue;
         if(!TString(comp.key()).Contains(constants::Order[i])) continue;
         TString buff = TString(comp.key());
+        buff.ReplaceAll("Sensor", "SplitSensor");
         buff.ReplaceAll("Gaussian_", "");
+        if(buff.Contains("mid")) buff = "midSplitSensor";
+        if(buff.Contains("old")) buff = "oldSplitSensor";
         if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
 
         outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << jtot["Worst"]["Bad Components Sensor"][comp.key()][2] << " & \t " 
@@ -116,6 +117,7 @@ void printToleranceTableLatex(json jtot, TString outputfile){
 										     << jtot["Worst"]["Bad Components Baseplate"][comp.key()][2] << " & \t "
 										     << jtot["Worst"]["Bad Components PCB"][comp.key()][2] << R"( \\)" << endl;
         }//for comparison
+        if(i % 3 == 2) outfile << R"(\hline)" << endl;
       }//for Order
     } else{
       for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
@@ -196,6 +198,7 @@ void printWorstTableLatex(json jtot, TString outputfile){
     if(type.key() == "Fit") continue;
     if(type.key() == "Worst") continue;
     if(type.key() == "TotalBadModules") continue;
+    if(TString(type.key()).Contains("Bad Components")) continue;
     outfile << R"(\newpage)" << endl;
     outfile << R"(\begin{center})" << endl;
     outfile << R"(\begin{longtable}{| c | c | c | c |})" << endl;
