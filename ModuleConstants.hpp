@@ -1,32 +1,38 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString baseDir = "moduleTolerances_complete_020721_TestGaussianNew";
+  const TString baseDir = "moduleTolerances_complete_020821_TestAll";
   const bool debug = false;
-  const TString whichOverlap = "Backside Bond";
+  const TString whichOverlap = "sen_pcb_kap";
 
   //Define Constant Widths
   const double pcb_w_const = 166.64, sensor_w_const = 166.57, kapton_w_const = 166.94, baseplate_w_const = 166.94;
   
+  int max = 3000;
+
+  int nbins = 650;
+  double step = 0.002;
+  double width_new = 1.4;
+  double width_backY = 4.0;
+  double axis = width_new/2 + nbins*step + 0.1;
+
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
-  //vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor", "Flat", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor",
-  //                       "CustomGaus", "CustomFlat",
-  //                       "Gaussian_PCBplus25", "Gaussian_PCBplus50", "Gaussian_PCBplus75", "Gaussian_PCBminus25", "Gaussian_PCBminus50", "Gaussian_PCBminus75",
-  //                       "Gaussian_Kaptonplus25_oldSensor", "Gaussian_Kaptonplus50_oldSensor", "Gaussian_Kaptonplus75_oldSensor",
-  //                       "Gaussian_Kaptonminus25_oldSensor", "Gaussian_Kaptonminus50_oldSensor", "Gaussian_Kaptonminus75_oldSensor", "Gaussian_Kaptonminus150_oldSensor",  "Gaussian_Kaptonminus170_oldSensor",
-  //                       "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor",
-  //                       "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor", "Gaussian_Kaptonminus150_newSensor",  "Gaussian_Kaptonminus170_newSensor",
-  //                       "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor",
-  //                       "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", "Gaussian_Kaptonminus150_midSensor",  "Gaussian_Kaptonminus170_midSensor",
-  //                       "Gaussian_PCBplus25_oldSensor", "Gaussian_PCBplus25_newSensor", };
   vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor", "Flat", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor",
+                         "CustomGaus", "CustomFlat",
                          "Gaussian_Kaptonplus25_oldSensor", "Gaussian_Kaptonplus50_oldSensor", "Gaussian_Kaptonplus75_oldSensor",
                          "Gaussian_Kaptonminus25_oldSensor", "Gaussian_Kaptonminus50_oldSensor", "Gaussian_Kaptonminus75_oldSensor", "Gaussian_Kaptonminus150_oldSensor",  "Gaussian_Kaptonminus170_oldSensor",
                          "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus75_newSensor",
                          "Gaussian_Kaptonminus25_newSensor", "Gaussian_Kaptonminus50_newSensor", "Gaussian_Kaptonminus75_newSensor", "Gaussian_Kaptonminus150_newSensor",  "Gaussian_Kaptonminus170_newSensor",
                          "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus75_midSensor",
                          "Gaussian_Kaptonminus25_midSensor", "Gaussian_Kaptonminus50_midSensor", "Gaussian_Kaptonminus75_midSensor", "Gaussian_Kaptonminus150_midSensor",  "Gaussian_Kaptonminus170_midSensor",
-                         };
+                         "Gaussian_PCBplus25_oldSensor", "Gaussian_PCBplus50_oldSensor", "Gaussian_PCBplus75_oldSensor",
+                         "Gaussian_PCBplus25_newSensor", "Gaussian_PCBplus50_newSensor", "Gaussian_PCBplus75_newSensor",
+                         "Gaussian_PCBplus25_midSensor", "Gaussian_PCBplus50_midSensor", "Gaussian_PCBplus75_midSensor",
+                         "Gaussian_PCBminus0_oldSensor", "Gaussian_PCBminus0_newSensor", "Gaussian_PCBminus0_midSensor",
+                         "Gaussian_PCBminus25_oldSensor", "Gaussian_PCBminus50_oldSensor", "Gaussian_PCBminus75_oldSensor",
+                         "Gaussian_PCBminus25_newSensor", "Gaussian_PCBminus50_newSensor", "Gaussian_PCBminus75_newSensor",
+                         "Gaussian_PCBminus25_midSensor", "Gaussian_PCBminus50_midSensor", "Gaussian_PCBminus75_midSensor",
+                        }; 
   //vector<string> Dist = {"Gaussian"};
   vector<string> Geometry = {"Full"};
 
@@ -40,8 +46,13 @@ namespace constants {
   			 "Gaussian_Kaptonplus25_newSensor", "Gaussian_Kaptonplus25_midSensor", "Gaussian_Kaptonplus25_oldSensor",  
   			 "Gaussian_Kaptonplus50_newSensor", "Gaussian_Kaptonplus50_midSensor", "Gaussian_Kaptonplus50_oldSensor",  
   			 "Gaussian_Kaptonplus75_newSensor", "Gaussian_Kaptonplus75_midSensor", "Gaussian_Kaptonplus75_oldSensor",
-                           "Gaussian_PCBplus75", "Gaussian_PCBplus50", "Gaussian_PCBplus25", "Gaussian_PCBminus75", "Gaussian_PCBminus50", "Gaussian_PCBminus25",
-  			 "Gaussian_PCBplus25_oldSensor", "Gaussian_PCBplus25_newSensor",
+  			 "Gaussian_PCBminus75_newSensor", "Gaussian_PCBminus75_midSensor", "Gaussian_PCBminus75_oldSensor",  
+  			 "Gaussian_PCBminus50_newSensor", "Gaussian_PCBminus50_midSensor", "Gaussian_PCBminus50_oldSensor",  
+  			 "Gaussian_PCBminus25_newSensor", "Gaussian_PCBminus25_midSensor", "Gaussian_PCBminus25_oldSensor",  
+  			 "Gaussian_PCBminus0_newSensor", "Gaussian_PCBminus0_midSensor", "Gaussian_PCBminus0_oldSensor", 
+  			 "Gaussian_PCBplus25_newSensor", "Gaussian_PCBplus25_midSensor", "Gaussian_PCBplus25_oldSensor",  
+  			 "Gaussian_PCBplus50_newSensor", "Gaussian_PCBplus50_midSensor", "Gaussian_PCBplus50_oldSensor",  
+  			 "Gaussian_PCBplus75_newSensor", "Gaussian_PCBplus75_midSensor", "Gaussian_PCBplus75_oldSensor",
   			 "CustomGaus", "CustomFlat", 
                            };
   
