@@ -31,8 +31,8 @@ void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
-  //module2DTolerances();
-  //module1DTolerances();
+  module2DTolerances();
+  module1DTolerances();
   moduleFitTolerances();
   //RedoLatexTable("Full");
 }
@@ -42,7 +42,7 @@ float Round(float var, float decimal = 1000.){
     return (float)value / decimal; 
 } 
 
-void printToleranceTableLatex(json jtot, TString outputfile){
+void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   ofstream outfile(outputfile);
   Quantity::printStyle = Quantity::LATEX;
 
@@ -68,41 +68,21 @@ void printToleranceTableLatex(json jtot, TString outputfile){
   outfile << R"(\begin{document})" << endl;
 
   assert(jtot);
+  assert(jbad);
 
-  for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
-    if(type.key() == "BinNum") continue;
-    if(type.key() == "Fit") continue;
+  for (json::iterator type = jbad.begin(); type != jbad.end(); ++type){
     if(type.key() == "Worst") continue;
     outfile << R"(\newpage)" << endl;
     outfile << R"(\begin{center})" << endl;
-         if(type.key() == "KaptonMultiDist") outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
-    else if(type.key() == "TotalBadModules") outfile << R"(\begin{longtable}{| c | c |})" << endl;
-    else if(TString(type.key()).Contains("Bad Components")) outfile << R"(\begin{longtable}{| c | c | c | c | c | c |})" << endl;
-    else                                outfile << R"(\begin{longtable}{| c | c | c | c |})" << endl;
+    outfile << R"(\begin{longtable}{| c | c | c |})" << endl;
     outfile << R"(\hline )" << endl;
 
-    int ncols = (type.key() == "KaptonMultiDist") ? 5 : 4;
-    if(type.key() == "TotalBadModules") ncols = 2;
-    if(TString(type.key()).Contains("Bad Components")) ncols = 5;
+    int ncols = 4;
     //key for value type
-         if(type.key() == "KaptonMultiDist") outfile << "Component Overlaps & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
-    else if(type.key() == "TotalBadModules") outfile << "Component Overlaps & \t Total Number of Bad Modules" << R"( \\)" << endl;
-    else if(TString(type.key()).Contains("Bad Components")) outfile << "Component Overlaps & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
-    else                                outfile << "Component Overlaps & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
-    if(type.key() == "TotalBadModules"){
-      outfile << R"(\hline)" << endl;
-      for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
-        if(TString(comp.key()).Contains("Nominal")) continue;
-        TString buff = TString(comp.key());
-        buff.ReplaceAll("Gaussian_", "");
-        if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
-
-        outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << jtot["Worst"]["Total Modules"][comp.key()][2] << R"( \\)" << endl;
-      }//for comparison
-    } else if (TString(type.key()).Contains("Bad Components")){
-      outfile << R"(\hline)" << endl;
-      for (int i = 0; i != (signed)constants::Order.size(); i++){
-      for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
+    outfile << "Component Overlaps & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
+    outfile << R"(\hline)" << endl;
+    for (int i = 0; i != (signed)constants::Order.size(); i++){
+      for (json::iterator comp = jbad[type.key()].begin(); comp != jbad[type.key()].end(); ++comp) {
         if(TString(comp.key()).Contains("Nominal")) continue;
         if(!TString(comp.key()).Contains(constants::Order[i])) continue;
         TString buff = TString(comp.key());
@@ -111,53 +91,67 @@ void printToleranceTableLatex(json jtot, TString outputfile){
         if(buff.Contains("mid")) buff = "midSplitSensor";
         if(buff.Contains("old")) buff = "oldSplitSensor";
         if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
+  
+        outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << round(float(jbad["Worst"]["Bad Components Sensor"][comp.key()][2])) << " & \t " 
+      									       << round(float(jbad["Worst"]["Bad Components Kapton"][comp.key()][2])) << " & \t "
+      									       << round(float(jbad["Worst"]["Bad Components Baseplate"][comp.key()][2])) << " & \t "
+      									       << round(float(jbad["Worst"]["Bad Components PCB"][comp.key()][2])) << R"( \\)" << endl;
+      }//for comparison
+      if(i % 3 == 2) outfile << R"(\hline)" << endl;
+    }//for Order
+  }
 
-        outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << jtot["Worst"]["Bad Components Sensor"][comp.key()][2] << " & \t " 
-										     << jtot["Worst"]["Bad Components Kapton"][comp.key()][2] << " & \t "
-										     << jtot["Worst"]["Bad Components Baseplate"][comp.key()][2] << " & \t "
-										     << jtot["Worst"]["Bad Components PCB"][comp.key()][2] << R"( \\)" << endl;
-        }//for comparison
-        if(i % 3 == 2) outfile << R"(\hline)" << endl;
-      }//for Order
-    } else{
-      for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
-        //key for overlap comparison
-        outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{$\vcenter{)" + dist.key() + R"(}$} \\)" << endl << R"(\hline)" << endl;
-        if(type.key() == "KaptonMultiDist"){
-          for (int i = 0; i != (signed)constants::Order.size(); i++){
-            for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
-              if(TString(comp.key()).Contains("Nominal")) continue;
-              if(!TString(comp.key()).Contains(constants::Order[i])) continue;
-              TString buff = TString(comp.key());
-              buff.ReplaceAll("Sensor", "SplitSensor");
-              buff.ReplaceAll("Gaussian_", "");
-              if(buff.Contains("mid")) buff = "midSplitSensor";
-              if(buff.Contains("old")) buff = "oldSplitSensor";
-              if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
+  for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
+    if(type.key() == "BinNum") continue;
+    if(type.key() == "Fit") continue;
+    if(type.key() == "Worst") continue;
+    outfile << R"(\newpage)" << endl;
+    outfile << R"(\begin{center})" << endl;
+         if(type.key() == "KaptonMultiDist") outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
+    else                                outfile << R"(\begin{longtable}{| c | c | c | c |})" << endl;
+    outfile << R"(\hline )" << endl;
 
-              outfile << translateString(buff, constants::latexMap, "_", ", "); 
-              outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
-                      << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
-              outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1], 1.0)
-                	         << R"( $N_{mod} = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2], 100000.)*30000  << R"( \\)" << endl;
-
-            }//for comparison
-          if(i % 3 == 2) outfile << R"(\hline)" << endl;
-          }//for constants::Order
-        } else {
+    int ncols = (type.key() == "KaptonMultiDist") ? 5 : 4;
+    //key for value type
+         if(type.key() == "KaptonMultiDist") outfile << "Component Overlaps & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
+    else                                     outfile << "Component Overlaps & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
+    for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
+      //key for overlap comparison
+      outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{$\vcenter{)" + dist.key() + R"(}$} \\)" << endl << R"(\hline)" << endl;
+      if(type.key() == "KaptonMultiDist"){
+        for (int i = 0; i != (signed)constants::Order.size(); i++){
           for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
             if(TString(comp.key()).Contains("Nominal")) continue;
+            if(!TString(comp.key()).Contains(constants::Order[i])) continue;
+            TString buff = TString(comp.key());
+            buff.ReplaceAll("Sensor", "SplitSensor");
+            buff.ReplaceAll("Gaussian_", "");
+            if(buff.Contains("mid")) buff = "midSplitSensor";
+            if(buff.Contains("old")) buff = "oldSplitSensor";
+            if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
 
-            outfile << translateString(comp.key(), constants::latexMap, "_", ", "); 
+            outfile << translateString(buff, constants::latexMap, "_", ", "); 
             outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
                     << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
             outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1], 1.0)
               	         << R"( $N_{mod} = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2], 100000.)*30000  << R"( \\)" << endl;
 
           }//for comparison
-        }
-      }//for overlap
-    }//for total
+        if(i % 3 == 2) outfile << R"(\hline)" << endl;
+        }//for constants::Order
+      } else {
+        for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
+          if(TString(comp.key()).Contains("Nominal")) continue;
+
+          outfile << translateString(comp.key(), constants::latexMap, "_", ", "); 
+          outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
+                  << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
+          outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1], 1.0)
+            	         << R"( $N_{mod} = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2], 100000.)*30000  << R"( \\)" << endl;
+
+        }//for comparison
+      }
+    }//for overlap
 
     outfile << R"(\hline)" << endl;
     outfile << R"(\end{longtable})" << endl;
@@ -168,7 +162,7 @@ void printToleranceTableLatex(json jtot, TString outputfile){
   outfile.close();
 }//for country!
 
-void printWorstTableLatex(json jtot, TString outputfile){
+void printWorstTableLatex(json jtot, json jbad, TString outputfile){
   ofstream outfile(outputfile);
   Quantity::printStyle = Quantity::LATEX;
 
@@ -239,9 +233,13 @@ void RedoLatexTable(TString geo){
     std::ifstream myFile(constants::baseDir+"/Test" + geo + "/" + geo + "_moduleTolerances.json");
     json jtot;
     myFile >> jtot;
-    printToleranceTableLatex(jtot, constants::baseDir+"/Test" + geo + "/" + geo + "_moduleTolerances.tex");
-    printWorstTableLatex(jtot, constants::baseDir+"/Test" + geo + "/" + geo + "_worst_moduleTolerances.tex");
+    //Bad Components
+    std::ifstream myBadFile(constants::outputDir+"/" + geo + "BadmoduleTolerances.json");
+    json jbad;
+    myBadFile >> jbad;
 
+    printToleranceTableLatex(jtot, jbad, constants::outputDir+"/" + geo + "_moduleTolerances.tex");
+    printWorstTableLatex(jtot, jbad, constants::outputDir+"/" + geo + "_worst_moduleTolerances.tex");
 }
 
 double GetWidthToA(double width){
@@ -464,6 +462,18 @@ json makeJSONModuleLatex(vector< pair< pair< string, string>, pair< double, doub
     }
     if(TString(it.first.second).Contains("Bad Components Sensor")){
       j[it.first.second][it.first.first] = it.first.first;
+    }
+  }
+
+  return j;
+}
+
+json makeJSONBadModuleLatex(vector< pair< pair< string, string>, pair< pair< pair< double, double >, pair< double, double > >, double > > >& worst){
+  json j;
+  for ( const auto & it : worst ) {
+    j["Worst"][it.first.second][it.first.first] = {it.second.first.first.first, it.second.first.first.second, it.second.first.second.first, it.second.first.second.second, it.second.second};
+    if(TString(it.first.second).Contains("Bad Components")){
+      j["TotalBadModules"][it.first.first] = it.first.first;
     }
   }
 
@@ -763,41 +773,57 @@ void ExtendPlots(TString geo){
       }
 }
 
-void ExtendWidths(TString type){
-      if(type.Contains("otherCenter")){
-        constants::baseplate_err = 0.029;
-      }
-      if(type.Contains("PCB")){
-        constants::pcb_w = constants::pcb_w_const;
-        TString buffer = type;
-        TString pcb_new_shift_str = buffer.ReplaceAll("Gaussian_PCBplus", "");
-        pcb_new_shift_str.ReplaceAll("Gaussian_PCBminus", "");
-        float pcb_new_shift = pcb_new_shift_str.Atof()/1000;
-       
-        if(type.Contains("plus"))  constants::pcb_w += pcb_new_shift;
-        if(type.Contains("minus")) constants::pcb_w -= pcb_new_shift;
-        //cout << "pcb_w: " << constants::pcb_w << "pcb_new_shift: " << pcb_new_shift << endl;
-      } else constants::pcb_w = constants::pcb_w_const;
-      if(type.Contains("Kapton")){
-        constants::kapton_w = constants::kapton_w_const;
-        TString buffer = type;
-        TString kapton_new_shift_str = buffer.ReplaceAll("Gaussian_Kaptonplus", "");
-        kapton_new_shift_str.ReplaceAll("Gaussian_Kaptonminus", "");
-        float kapton_new_shift = kapton_new_shift_str.Atof()/1000;
-       
-        if(type.Contains("plus"))  constants::kapton_w += kapton_new_shift;
-        if(type.Contains("minus")) constants::kapton_w -= kapton_new_shift;
-        //cout << "kapton_w: " << constants::kapton_w << "kapton_new_shift: " << kapton_new_shift << endl;
-      } else constants::kapton_w = constants::kapton_w_const;
-      if(type.Contains("newSensor")){ 
-        constants::sensor_shift_x = 0.050; 
-        constants::sensor_shift_y = 0.050;
-      } else if(type.Contains("midSensor")) {
-	constants::sensor_shift_x = 0.100;
-	constants::sensor_shift_y = 0.050;
-      } else if(type.Contains("oldSensor")) {
-	constants::sensor_shift_x = 0.200;
-	constants::sensor_shift_y = 0.050;
+void ExtendWidths(TString par){
+      vector<TString> ext = splitString(par, "_");
+      bool ispcb = false, iskap = false, issen = false;
+      for(int iS = 0; iS != ext.size(); iS++){
+        TString par = ext[iS];
+        if(par.Contains("otherCenter")){
+          constants::baseplate_err = 0.029;
+        }
+
+        if(par.Contains("PCB")){
+          constants::pcb_w = constants::pcb_w_const;
+          TString buffer = par;
+          TString pcb_new_shift_str = buffer.ReplaceAll("PCBplus", "");
+          pcb_new_shift_str.ReplaceAll("PCBminus", "");
+          float pcb_new_shift = pcb_new_shift_str.Atof()/1000;
+         
+          if(par.Contains("plus"))  constants::pcb_w += pcb_new_shift;
+          if(par.Contains("minus")) constants::pcb_w -= pcb_new_shift;
+          cout << "pcb_w: " << constants::pcb_w << " pcb_new_shift: " << pcb_new_shift << endl;
+          ispcb = true;
+        } else if(!ispcb) constants::pcb_w = constants::pcb_w_const;
+
+        if(par.Contains("Kapton")){
+          constants::kapton_w = constants::kapton_w_const;
+          TString buffer = par;
+          TString kapton_new_shift_str = buffer.ReplaceAll("Kaptonplus", "");
+          kapton_new_shift_str.ReplaceAll("Kaptonminus", "");
+          float kapton_new_shift = kapton_new_shift_str.Atof()/1000;
+         
+          if(par.Contains("plus"))  constants::kapton_w += kapton_new_shift;
+          if(par.Contains("minus")) constants::kapton_w -= kapton_new_shift;
+          cout << "kapton_w: " << constants::kapton_w << " kapton_new_shift: " << kapton_new_shift << endl;
+          iskap = true;
+        } else if(!iskap) constants::kapton_w = constants::kapton_w_const;
+
+        if(par.Contains("Sensor")){
+          if(par.Contains("new")){ 
+            constants::sensor_shift_x = 0.050; 
+            constants::sensor_shift_y = 0.050;
+          } else if(par.Contains("mid")) {
+            constants::sensor_shift_x = 0.100;
+            constants::sensor_shift_y = 0.050;
+          } else if(par.Contains("old")) {
+            constants::sensor_shift_x = 0.200;
+            constants::sensor_shift_y = 0.050;
+          }
+          issen = true;
+        } else if(!issen){
+          constants::sensor_shift_x = 0.200;
+          constants::sensor_shift_y = 0.050;
+        }  
       }
 }
 
@@ -820,12 +846,14 @@ void module2DTolerances(){
     vector < pair < double, double > > points = GetPoints(geo, GetWidthToA(constants::width_new), constants::width_new);
     center.emplace("new", getPolyCenter(points));
 
+    vector< pair< pair< string, string>, pair< pair< pair< double, double >, pair< double, double > >, double > > > bad_values = {};
+
     int iBad = 0;
     TH1D* hBad = new TH1D(geo + "_Bad", "Bad" + geo, constants::Dist.size(), 0, constants::Dist.size());
     for(auto &type_str: constants::Dist){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
-      int nBadModules = 0;
+      double nBadModules = 0.;
 
       double sigma = 1., mean = 1., kapton_sigma = 1., kapton_mean = 1.;
       if(type.Contains("Custom")){
@@ -970,8 +998,8 @@ void module2DTolerances(){
 
 
         if(sum_of_elems > 0){
-          nBadModules++;
           double weight = 30000./double(constants::max);
+          nBadModules += weight;
           hBad->Fill(iBad, weight);
           for(int iX = 0; iX != (signed)xBadComp.size(); iX++) hBadComp->Fill(xBadComp[iX], weight);
           for(int iX = 0; iX != (signed)xCorr.size(); iX++){
@@ -983,6 +1011,9 @@ void module2DTolerances(){
         }
       }//for all modules
       iBad++;
+      bad_values.push_back(make_pair(make_pair(type_str, "Bad Components"), 
+      make_pair(make_pair(make_pair(hBad->GetBinContent(1), hBad->GetBinContent(2)), 
+	                  make_pair(hBad->GetBinContent(3), hBad->GetBinContent(4))), nBadModules)));
 
       vector<TString> binLabels = {
         TString(constants::nameMap["sen_kap_stack_hist"]), 
@@ -1023,6 +1054,13 @@ void module2DTolerances(){
       BadComp->Print(constants::outputDir+"/" + type + "/" + geo + "_" + type + "_BadComponents.pdf");
       delete gROOT->FindObject(geo + "_" + type + "_BadComponents");
     }//Different distribution type
+
+    std::ofstream jout;
+    jout.open(constants::outputDir+"/" + geo + "BadmoduleTolerances.json");
+    json jtot = makeJSONBadModuleLatex(bad_values);
+    jout << jtot.dump(3);
+    jout.close();
+
     //Save bad components
     hBad->Write();
     auto leg_Bad = prepLegends({hBad}, {hBad->GetName()}, "P");
@@ -1273,20 +1311,14 @@ void moduleFitTolerances(){
     else if(geo == "Half" || geo == "Three") nPeaks = 2;
 
     TFile *file = TFile::Open(constants::outputDir + "/" + geo + "_1Doverlap.root");
-    TFile *file2D = TFile::Open(constants::outputDir + "/" + geo + "_2Doverlap.root");
-    TH1D* hBad = (TH1D*)file2D->Get(geo + "_Bad");
-    int ibin_bad = 1;
     for(auto &type_str: constants::Dist){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
-      int nBadModules = hBad->GetBinContent(ibin_bad);
 
       ExtendWidths(type);
 
       file->cd();
       vector<TH1D*> AllHists = GetHistograms1D(file, geo, type);
-      file2D->cd();
-      vector<TH1D*> BadHists = GetHistograms1D(file2D, geo, type);
 
       //Get an iterator to and loop over the list of keys in the file.
       map<TString, TH1D*> overlap_1D, overlap_1D_integrate;
@@ -1299,14 +1331,6 @@ void moduleFitTolerances(){
         hName.ReplaceAll(geo + "_" + type,"");
         if(!hName.Contains("_integrate")) overlap_1D.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         else                              overlap_1D_integrate.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
-      }
-
-      TH1D* hBadComp = nullptr;
-      for (int iB = 0; iB != (signed)BadHists.size(); iB++){
-        TH1D* h = (TH1D*)BadHists[iB];
-        TString hName = TString(h->GetName());
-        if(!hName.Contains(geo + "_" + type)) continue;
-        hBadComp = (TH1D*)h;
       }
 
       int sides = 1;
@@ -1385,25 +1409,22 @@ void moduleFitTolerances(){
 
         worst_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(make_pair(max_tol[0]/1000, max_tol[1]/1000), max_tol[2])));
       }// for worst possible value
-      //Worst Components
-      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Sensor"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(1)))));
-      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Kapton"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(2)))));
-      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Baseplate"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(3)))));
-      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components PCB"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(4)))));
-      worst_values.push_back(make_pair(make_pair(type_str, "Total Modules"), make_pair(make_pair(0., 0.), double(nBadModules*30000/constants::max))));
-      ibin_bad++;
     }//Different distribution type
 
     file->Close();
-    file2D->Close();
 
     std::ofstream jout;
     jout.open(constants::outputDir+"/" + geo + "_moduleTolerances.json");
     json jtot = makeJSONModuleLatex(fit_values, worst_values);
     jout << jtot.dump(3);
     jout.close();
-    printToleranceTableLatex(jtot, constants::outputDir+"/" + geo + "_moduleTolerances.tex");
-    printWorstTableLatex(jtot, constants::outputDir+"/" + geo + "_worst_moduleTolerances.tex");
+    //Bad Components
+    std::ifstream myFile(constants::outputDir+"/" + geo + "BadmoduleTolerances.json");
+    json jbad;
+    myFile >> jbad;
+
+    printToleranceTableLatex(jtot, jbad, constants::outputDir+"/" + geo + "_moduleTolerances.tex");
+    printWorstTableLatex(jtot, jbad, constants::outputDir+"/" + geo + "_worst_moduleTolerances.tex");
 
     for (int iP = 1; iP < nPeaks + 1; iP++){
       TString pName = "_Peak" + to_string(iP);
@@ -1411,8 +1432,6 @@ void moduleFitTolerances(){
         if(d.key() == "BinNum") continue;
         if(d.key() == "Fit") continue;
         if(d.key() == "Worst") continue;
-        if(d.key() == "Bad Components Sensor") continue;
-        if(d.key() == "Total Modules") continue;
         vector<TH1*> hFit, hWorst, hNominal;
         vector<TString> binLabels(jtot["BinNum"].size());
         for (json::iterator comp = jtot[d.key()].begin(); comp != jtot[d.key()].end(); ++comp) {
