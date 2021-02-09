@@ -77,18 +77,22 @@ void printToleranceTableLatex(json jtot, TString outputfile){
     outfile << R"(\begin{center})" << endl;
          if(type.key() == "KaptonMultiDist") outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
     else if(type.key() == "TotalBadModules") outfile << R"(\begin{longtable}{| c | c |})" << endl;
+    else if(TString(type.key()).Contains("Bad Components")) outfile << R"(\begin{longtable}{| c | c | c | c | c |})" << endl;
     else                                outfile << R"(\begin{longtable}{| c | c | c | c |})" << endl;
     outfile << R"(\hline )" << endl;
 
     int ncols = (type.key() == "KaptonMultiDist") ? 5 : 4;
     if(type.key() == "TotalBadModules") ncols = 2;
+    if(TString(type.key()).Contains("Bad Components")) ncols = 5;
     //key for value type
          if(type.key() == "KaptonMultiDist") outfile << "Component Overlaps & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
     else if(type.key() == "TotalBadModules") outfile << "Component Overlaps & \t Total Number of Bad Modules" << R"( \\)" << endl;
+    else if(TString(type.key()).Contains("Bad Components")) outfile << "Component Overlaps & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
     else                                outfile << "Component Overlaps & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
     if(type.key() == "TotalBadModules"){
       outfile << R"(\hline)" << endl;
       for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
+//cout << type.key() << " " << comp.key() << endl;
         if(TString(comp.key()).Contains("Nominal")) continue;
         TString buff = TString(comp.key());
         buff.ReplaceAll("Gaussian_", "");
@@ -96,6 +100,23 @@ void printToleranceTableLatex(json jtot, TString outputfile){
 
         outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << jtot["Worst"]["Total Modules"][comp.key()][2] << R"( \\)" << endl;
       }//for comparison
+    } else if (TString(type.key()).Contains("Bad Components")){
+      outfile << R"(\hline)" << endl;
+      for (int i = 0; i != (signed)constants::Order.size(); i++){
+      for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
+//cout << type.key() << " " << comp.key() << endl;
+        if(TString(comp.key()).Contains("Nominal")) continue;
+        if(!TString(comp.key()).Contains(constants::Order[i])) continue;
+        TString buff = TString(comp.key());
+        buff.ReplaceAll("Gaussian_", "");
+        if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
+
+        outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << jtot["Worst"]["Bad Components Sensor"][comp.key()][2] << " & \t " 
+										     << jtot["Worst"]["Bad Components Kapton"][comp.key()][2] << " & \t "
+										     << jtot["Worst"]["Bad Components Baseplate"][comp.key()][2] << " & \t "
+										     << jtot["Worst"]["Bad Components PCB"][comp.key()][2] << R"( \\)" << endl;
+        }//for comparison
+      }//for Order
     } else{
       for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
         //key for overlap comparison
@@ -438,6 +459,9 @@ json makeJSONModuleLatex(vector< pair< pair< string, string>, pair< double, doub
     if(TString(it.first.second).Contains("Total")){
       j["TotalBadModules"][it.first.first] = it.first.first;
     }
+    if(TString(it.first.second).Contains("Bad Components Sensor")){
+      j[it.first.second][it.first.first] = it.first.first;
+    }
   }
 
   return j;
@@ -749,7 +773,7 @@ void ExtendWidths(TString type){
        
         if(type.Contains("plus"))  constants::pcb_w += pcb_new_shift;
         if(type.Contains("minus")) constants::pcb_w -= pcb_new_shift;
-        cout << "pcb_w: " << constants::pcb_w << "pcb_new_shift: " << pcb_new_shift << endl;
+        //cout << "pcb_w: " << constants::pcb_w << "pcb_new_shift: " << pcb_new_shift << endl;
       } else constants::pcb_w = constants::pcb_w_const;
       if(type.Contains("Kapton")){
         constants::kapton_w = constants::kapton_w_const;
@@ -760,7 +784,7 @@ void ExtendWidths(TString type){
        
         if(type.Contains("plus"))  constants::kapton_w += kapton_new_shift;
         if(type.Contains("minus")) constants::kapton_w -= kapton_new_shift;
-        cout << "kapton_w: " << constants::kapton_w << "kapton_new_shift: " << kapton_new_shift << endl;
+        //cout << "kapton_w: " << constants::kapton_w << "kapton_new_shift: " << kapton_new_shift << endl;
       } else constants::kapton_w = constants::kapton_w_const;
       if(type.Contains("newSensor")){ 
         constants::sensor_shift_x = 0.050; 
@@ -1218,7 +1242,7 @@ std::vector<TH1D*> GetHistograms1D(TFile *f, TString geo, TString type, TString 
    while ((key = (TKey*)keyIter())) {
       //Get the objects name.
       std::string hName = key->GetName();
-      if(TString(key->GetClassName()).Contains("TH2Poly")) continue;
+      if(TString(key->GetClassName()).Contains("TH2Poly") || TString(hName).Contains("correlation")) continue;
 
       //Try to cast the object to a TTree.
       //TH1D* hist = dynamic_cast<TH1D*>(key->ReadObj());
@@ -1247,10 +1271,12 @@ void moduleFitTolerances(){
 
     TFile *file = TFile::Open(constants::outputDir + "/" + geo + "_1Doverlap.root");
     TFile *file2D = TFile::Open(constants::outputDir + "/" + geo + "_2Doverlap.root");
+    TH1D* hBad = (TH1D*)file2D->Get(geo + "_Bad");
+    int ibin_bad = 1;
     for(auto &type_str: constants::Dist){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
-      int nBadModules = 0;
+      int nBadModules = hBad->GetBinContent(ibin_bad);
 
       ExtendWidths(type);
 
@@ -1270,6 +1296,14 @@ void moduleFitTolerances(){
         hName.ReplaceAll(geo + "_" + type,"");
         if(!hName.Contains("_integrate")) overlap_1D.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         else                              overlap_1D_integrate.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
+      }
+
+      TH1D* hBadComp = nullptr;
+      for (int iB = 0; iB != (signed)BadHists.size(); iB++){
+        TH1D* h = (TH1D*)BadHists[iB];
+        TString hName = TString(h->GetName());
+        if(!hName.Contains(geo + "_" + type)) continue;
+        hBadComp = (TH1D*)h;
       }
 
       int sides = 1;
@@ -1348,7 +1382,13 @@ void moduleFitTolerances(){
 
         worst_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(make_pair(max_tol[0]/1000, max_tol[1]/1000), max_tol[2])));
       }// for worst possible value
+      //Worst Components
+      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Sensor"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(1)))));
+      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Kapton"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(2)))));
+      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components Baseplate"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(3)))));
+      worst_values.push_back(make_pair(make_pair(type_str, "Bad Components PCB"), make_pair(make_pair(0., 0.), double(hBadComp->GetBinContent(4)))));
       worst_values.push_back(make_pair(make_pair(type_str, "Total Modules"), make_pair(make_pair(0., 0.), double(nBadModules*30000/constants::max))));
+      ibin_bad++;
     }//Different distribution type
 
     file->Close();
@@ -1368,6 +1408,8 @@ void moduleFitTolerances(){
         if(d.key() == "BinNum") continue;
         if(d.key() == "Fit") continue;
         if(d.key() == "Worst") continue;
+        if(d.key() == "Bad Components Sensor") continue;
+        if(d.key() == "Total Modules") continue;
         vector<TH1*> hFit, hWorst, hNominal;
         vector<TString> binLabels(jtot["BinNum"].size());
         for (json::iterator comp = jtot[d.key()].begin(); comp != jtot[d.key()].end(); ++comp) {
