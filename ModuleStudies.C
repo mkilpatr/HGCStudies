@@ -30,10 +30,10 @@ void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
-  module2DTolerances();
-  //module1DTolerances();
-  //moduleFitTolerances();
-  //RedoLatexTable("Full");
+  //module2DTolerances();
+  module1DTolerances();
+  moduleFitTolerances();
+  RedoLatexTable("Full");
 }
 
 float Round(float var, float decimal = 1000.){ 
@@ -73,7 +73,6 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\begin{longtable}{| c | c | c | c | c | c |})" << endl;
   outfile << R"(\hline )" << endl;
 
-  int ncols = 4;
   //key for value type
   outfile << "Component Overlaps & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
   outfile << R"(\hline)" << endl;
@@ -103,13 +102,12 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\newpage)" << endl;
   outfile << R"(\begin{center})" << endl;
   outfile << R"(\resizebox*{1.0\textwidth}{!}{)" << endl;
-  outfile << R"(\begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c |})" << endl;
+  outfile << R"(\begin{tabular}{| c | c | c | c | c | c | c | c |})" << endl;
   outfile << R"(\hline )" << endl;
 
-  ncols = 12;
   //key for value type
   outfile << "Component Overlaps & \t Sensor Placement";
-  for(int i = 0; i != (signed)constants::whichComp.size(); i++) outfile << " & \t " << constants::nameMap[constants::whichComp[i]];
+  for(int i = 0; i != (signed)constants::whichComp.size(); i++) if(constants::whichComp[i].Contains("stack_hist")) outfile << " & \t " << constants::nameMap[constants::whichComp[i]];
   outfile << R"( \\)" << endl;
   outfile << R"(\hline)" << endl;
   for (int i = 0; i != (signed)constants::Order.size(); i++){
@@ -125,7 +123,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   
       if(constants::debug) cout << comp.key() << " " << buff << endl;
       outfile << translateString(buff, constants::latexMap, "_", ", "); 
-      for(int i = 0; i != (signed)constants::whichComp.size(); i++) outfile << " & \t " << round(float(jbad["Worst"]["Bad Overlaps"][comp.key()][constants::nameMap[constants::whichComp[i]]]));
+      for(int i = 0; i != (signed)constants::whichComp.size(); i++) if(constants::whichComp[i].Contains("stack_hist")) outfile << " & \t " << round(float(jbad["Worst"]["Bad Overlaps"][comp.key()][constants::nameMap[constants::whichComp[i]]]));
       outfile << R"( \\)" << endl;
 
     }//for comparison
@@ -1445,17 +1443,14 @@ void moduleFitTolerances(){
 
     for(auto iP = 1; iP != nPeaks + 1; iP++){
       for(auto iK = 0; iK != (signed)overlap_1D_integrate_minus_split.size(); iK++){
-        cout << overlap_1D_integrate_minus_split[iK] << endl;
         TString pName = "_Peak" + to_string(iP);
         vector<TH1*> plots;
         auto leg = prepLegends({}, {}, "P");
         for(std::map<TString,TH1D*>::iterator iter = overlap_1D_integrate_minus.begin(); iter != overlap_1D_integrate_minus.end(); ++iter){
-          cout << iter->second->GetName() << endl;
           if(!TString(iter->first).Contains(overlap_1D_integrate_minus_split[iK])) continue;
           addLegendEntry(leg, iter->second, translateString(iter->first, constants::plotMap, "_", ", "), "L");
           plots.push_back(iter->second);
         }
-        cout << plots.size() << endl;
         leg->SetTextSize(0.03);
         leg->SetY1NDC(leg->GetY2NDC() - 0.3);
         prepHists(plots, false, false, false, {kRed, kBlue, kMagenta});
