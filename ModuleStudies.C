@@ -31,9 +31,9 @@ void RedoLatexTable(TString geo = "Full");
 
 void ModuleStudies(){
   //module2DTolerances();
-  module1DTolerances();
+  //module1DTolerances();
   moduleFitTolerances();
-  RedoLatexTable("Full");
+  //RedoLatexTable("Full");
 }
 
 float Round(float var, float decimal = 1000.){ 
@@ -57,6 +57,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\usepackage[hidelinks]{hyperref})" << endl;
   outfile << R"(\usepackage{listings})" << endl;
   outfile << R"(\usepackage{rotating})" << endl;
+  outfile << R"(\usepackage{multirow})" << endl;
   outfile << R"(\usepackage[utf8]{inputenc})" << endl;
   outfile << R"(\usepackage[english]{babel})" << endl;
   outfile << R"(\usepackage[usenames, dvipsnames]{color})" << endl;
@@ -74,12 +75,13 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\hline )" << endl;
 
   //key for value type
-  outfile << "Component Overlaps & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
+  outfile << "Widths & \t Sensor Placement & \t Sensor & \t Kapton & \t Baseplate & \t PCB \t" << R"( \\)" << endl;
   outfile << R"(\hline)" << endl;
   for (int i = 0; i != (signed)constants::Order.size(); i++){
     for (json::iterator comp = jbad["Worst"]["Bad Components"].begin(); comp != jbad["Worst"]["Bad Components"].end(); ++comp) {
       if(!TString(comp.key()).Contains(constants::Order[i])) continue;
       if(TString(comp.key()).Contains("Nominal")) continue;
+      TString multi = "";
       TString buff = TString(comp.key());
       buff.ReplaceAll("Sensor", "SplitSensor");
       buff.ReplaceAll("Gaussian_", "");
@@ -88,10 +90,12 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
       if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
   
       if(constants::debug) cout << comp.key() << " " << buff << endl;
-      outfile << translateString(buff, constants::latexMap, "_", ", ") << " & \t " << round(float(jbad["Worst"]["Bad Components"][comp.key()]["Sensor"])) << " & \t " 
-    									             << round(float(jbad["Worst"]["Bad Components"][comp.key()]["Kapton"])) << " & \t "
-    									             << round(float(jbad["Worst"]["Bad Components"][comp.key()]["Baseplate"])) << " & \t "
-    									             << round(float(jbad["Worst"]["Bad Components"][comp.key()]["PCB"])) << R"( \\)" << endl;
+      if(buff.Contains("old")) multi = R"( \multirow{3}{*}{)";
+      outfile << multi << translateString(buff, constants::latexMap, "_", ", ") << " & \t " 
+	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Sensor"])) << " & \t " 
+    	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Kapton"])) << " & \t "
+    	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Baseplate"])) << " & \t "
+    	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["PCB"])) << R"( \\)" << endl;
     }//for comparison
     if(i % 3 == 2) outfile << R"(\hline)" << endl;
   }//for Order
@@ -106,7 +110,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\hline )" << endl;
 
   //key for value type
-  outfile << "Component Overlaps & \t Sensor Placement";
+  outfile << "Widths & \t Sensor Placement";
   for(int i = 0; i != (signed)constants::whichComp.size(); i++) if(constants::whichComp[i].Contains("stack_hist")) outfile << " & \t " << constants::nameMap[constants::whichComp[i]];
   outfile << R"( \\)" << endl;
   outfile << R"(\hline)" << endl;
@@ -114,6 +118,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
     for (json::iterator comp = jbad["Worst"]["Bad Overlaps"].begin(); comp != jbad["Worst"]["Bad Overlaps"].end(); ++comp) {
       if(!TString(comp.key()).Contains(constants::Order[i])) continue;
       if(TString(comp.key()).Contains("Nominal")) continue;
+      TString multi = "";
       TString buff = TString(comp.key());
       buff.ReplaceAll("Sensor", "SplitSensor");
       buff.ReplaceAll("Gaussian_", "");
@@ -122,7 +127,8 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
       if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
   
       if(constants::debug) cout << comp.key() << " " << buff << endl;
-      outfile << translateString(buff, constants::latexMap, "_", ", "); 
+      if(buff.Contains("old")) multi = R"( \multirow{3}{*}{)";
+      outfile << multi << translateString(buff, constants::latexMap, "_", ", "); 
       for(int i = 0; i != (signed)constants::whichComp.size(); i++) if(constants::whichComp[i].Contains("stack_hist")) outfile << " & \t " << round(float(jbad["Worst"]["Bad Overlaps"][comp.key()][constants::nameMap[constants::whichComp[i]]]));
       outfile << R"( \\)" << endl;
 
@@ -143,7 +149,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
 
     int ncols = 5;
     //key for value type
-    outfile << "Component Overlaps & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t \\% Diff & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
+    outfile << "Widths & \t Sensor Placement & \t Nominal " << R"([$\mu m]$)" << " & \t Fitted " << R"($[\mu m]$)" << " & \t Worst " << R"($[\mu m]$)" << R"( \\)" << endl;
     for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
       //key for overlap comparison
       outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{$\vcenter{)" + dist.key() + R"(}$} \\)" << endl << R"(\hline)" << endl;
@@ -151,6 +157,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
         for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
           if(!TString(comp.key()).Contains(constants::Order[i])) continue;
           if(TString(comp.key()).Contains("Nominal")) continue;
+          TString multi = "";
           TString buff = TString(comp.key());
           buff.ReplaceAll("Sensor", "SplitSensor");
           buff.ReplaceAll("Gaussian_", "");
@@ -159,10 +166,11 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
           if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
 
           if(constants::debug) cout << type.key() << " " << comp.key() << " " << dist.key() << endl;
-          outfile << translateString(buff, constants::latexMap, "_", ", "); 
+          if(buff.Contains("old")) multi = R"( \multirow{3}{*}{)";
+          outfile << multi << translateString(buff, constants::latexMap, "_", ", "); 
           outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
-                  << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1])
-                  << " & \t " << Round((float(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) - float(jtot["Fit"][dist.key()][comp.key()][0]))/float(jtot["Fit"][dist.key()][comp.key()][0]), 100.);
+                  << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
+                  //<< " & \t " << Round((float(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) - float(jtot["Fit"][dist.key()][comp.key()][0]))/float(jtot["Fit"][dist.key()][comp.key()][0]), 100.);
           outfile << " & \t " << Round(jtot["Worst"][dist.key()][comp.key()][0], 1.0) << R"( $\pm$ )" << Round(jtot["Worst"][dist.key()][comp.key()][1], 1.0)
             	         << R"( $N_{mod} = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2], 100000.)*30000  << R"( \\)" << endl;
 
@@ -1326,6 +1334,7 @@ void moduleFitTolerances(){
     TFile *file = TFile::Open(constants::outputDir + "/" + geo + "_1Doverlap.root");
     map<TString, TH1D*> overlap_1D_integrate_minus = {};
     vector<TString> overlap_1D_integrate_minus_split = {};
+    vector<TString> overlap_1D_integrate_minus_kind = {};
     for(auto &type_str: constants::Dist){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
@@ -1345,21 +1354,25 @@ void moduleFitTolerances(){
         if(!hName.Contains("_integrate")) overlap_1D.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         else                              overlap_1D_integrate.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         if(TString(hName).Contains("bas_kap_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate") && type.Contains("Gaussian")){
-          TString kaptonType = TString(type + hName.ReplaceAll("bas_kap_stack_hist", ""));
+          TString kaptonType = TString("BasToKap_" + type + hName.ReplaceAll("bas_kap_stack_hist", ""));
           overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
           if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
-        //} else if(TString(hName).Contains("sen_pcb_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
-        //  TString kaptonType = TString(type + hName.ReplaceAll("sen_pcb_stack_hist", ""));
-        //  overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
-        //  if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
-        //} else if(TString(hName).Contains("pcb_bas_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
-        //  TString kaptonType = TString(type + hName.ReplaceAll("pcb_bas_stack_hist", ""));
-        //  overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
-        //  if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
-        //} else if(TString(hName).Contains("pcb_kap_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
-        //  TString kaptonType = TString(type + hName.ReplaceAll("pcb_kap_stack_hist", ""));
-        //  overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
-        //  if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_kind.push_back("BasToKap");
+        } else if(TString(hName).Contains("sen_pcb_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
+          TString kaptonType = TString("SenToPCB_" + type + hName.ReplaceAll("sen_pcb_stack_hist", ""));
+          overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_kind.push_back("SenToPCB");
+        } else if(TString(hName).Contains("pcb_bas_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
+          TString kaptonType = TString("PCBToBas_" + type + hName.ReplaceAll("pcb_bas_stack_hist", ""));
+          overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_kind.push_back("PCBToBas");
+        } else if(TString(hName).Contains("pcb_kap_stack_hist") && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && hName.Contains("_integrate")){
+          TString kaptonType = TString("PCBToKap_" + type + hName.ReplaceAll("pcb_kap_stack_hist", ""));
+          overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)h));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_split.push_back(kaptonType.ReplaceAll("_oldSensor_Peak1_integrate", ""));
+          if(type.Contains("oldSensor")) overlap_1D_integrate_minus_kind.push_back("PCBToKap");
         }
       }
 
@@ -1443,19 +1456,29 @@ void moduleFitTolerances(){
 
     for(auto iP = 1; iP != nPeaks + 1; iP++){
       for(auto iK = 0; iK != (signed)overlap_1D_integrate_minus_split.size(); iK++){
+        if(constants::debug) cout << overlap_1D_integrate_minus_split[iK] << endl;
         TString pName = "_Peak" + to_string(iP);
         vector<TH1*> plots;
         auto leg = prepLegends({}, {}, "P");
         for(std::map<TString,TH1D*>::iterator iter = overlap_1D_integrate_minus.begin(); iter != overlap_1D_integrate_minus.end(); ++iter){
           if(!TString(iter->first).Contains(overlap_1D_integrate_minus_split[iK])) continue;
-          addLegendEntry(leg, iter->second, translateString(iter->first, constants::plotMap, "_", ", "), "L");
+          addLegendEntry(leg, iter->second, translateString(TString(iter->first).ReplaceAll(overlap_1D_integrate_minus_split[iK], ""), constants::plotMap, "_", ", "), "L");
+          TString xTitle = TString(iter->first);
+          xTitle.ReplaceAll("_midSensor", "");
+          xTitle.ReplaceAll(overlap_1D_integrate_minus_kind[iK], "");
+          iter->second->SetTitle(";"+translateString(xTitle, constants::plotMap, "_", ", ")+";Overlaps");
           plots.push_back(iter->second);
+          if(constants::debug) cout << iter->first << " " << iter->second->GetName() << endl;
         }
         leg->SetTextSize(0.03);
         leg->SetY1NDC(leg->GetY2NDC() - 0.3);
         prepHists(plots, false, false, false, {kRed, kBlue, kMagenta});
         //integral
-        TCanvas* diff = drawCompMatt(plots, leg, -1., nullptr, "hist", true);
+        setLegend(leg, 1, 0.2, 0.7, 0.94, 0.87);
+        TString addString = "";
+        if(overlap_1D_integrate_minus_kind[iK].Contains("BasToKap")) addString = "Sensor Dist = " + to_string((int)(constants::base_kap_min*1000)) + " #mum";
+        std::function<void(TCanvas*)> plotextra = [&](TCanvas *c){ c->cd(); drawTLatexNDC("#splitline{" + translateString(overlap_1D_integrate_minus_kind[iK], constants::plotMap, "_", ",") + "}{" + addString + "}", 0.22, 0.63); };
+        TCanvas* diff = drawCompMatt(plots, leg, 0.00001, &plotextra, "hist", true, -0.2, 0.4);
         TString name = geo + "_" + overlap_1D_integrate_minus_split[iK] + "_diff_kaptonAll" + pName;
         diff->Update();
         diff->SetTitle(name);

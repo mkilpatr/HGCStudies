@@ -2,7 +2,7 @@ import os
 import json
 
 # json file witll_BkgPred_v2e bkg predictions and signal yields
-def write_json(data, filename='ModuleTolerances_complete_100K_021821/TestFull/Full_BadmoduleTolerances.json'):
+def write_json(data, filename='ModuleTolerances_complete_100K_021821_small/TestFull/Full_BadmoduleTolerances.json'):
     with open(filename,'w') as f:
     	json.dump(data, f, indent=2, ensure_ascii=False)
 
