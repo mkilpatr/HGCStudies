@@ -31,8 +31,8 @@ void RedoLatexTable(TString geo = "Full");
 
 void ModuleStudies(){
   //module2DTolerances();
-  //module1DTolerances();
-  moduleFitTolerances();
+  module1DTolerances();
+  //moduleFitTolerances();
   //RedoLatexTable("Full");
 }
 
@@ -1223,16 +1223,17 @@ void module1DTolerances(){
         	{colors["pcb_bas_stack_hist"], colors["pcb_kap_stack_hist"], colors["bas_kap_stack_hist"]});
 
         auto leg_diff = prepLegends({overlap_1D["pcb_bas_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName], overlap_1D["bas_kap_stack_hist" + pName]}, 
-                                    {constants::nameMap["pcb_bas_stack_hist"], constants::nameMap["pcb_kap_stack_hist"], constants::nameMap["bas_kap_stack_hist"]}, "P");
+                                    {constants::nameMap["pcb_bas_stack_hist"], constants::nameMap["pcb_kap_stack_hist"], constants::nameMap["bas_kap_stack_hist"]}, "L");
         leg_diff->SetTextSize(0.03);
         leg_diff->SetY1NDC(leg_diff->GetY2NDC() - 0.3);
-        TCanvas* diff = drawCompMatt({overlap_1D["pcb_bas_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName], overlap_1D["bas_kap_stack_hist" + pName]}, leg_diff, 0.00001, nullptr, "hist", true);
+        setLegend(leg_diff, 1, 0.2, 0.7, 0.94, 0.87);
+        TCanvas* diff = drawCompMatt({overlap_1D["pcb_bas_stack_hist" + pName], overlap_1D["pcb_kap_stack_hist" + pName], overlap_1D["bas_kap_stack_hist" + pName]}, leg_diff, 0.00001, nullptr, "hist", true, -0.2, 0.4);
         name = geo + "_" + type + "_diff" + pName;
         diff->Update();
         diff->SetTitle(name);
         diff->Print(constants::outputDir+"/"+type+"/"+name+".pdf");
         //integral
-        TCanvas* diff_int = drawCompMatt({overlap_1D_integrate["pcb_bas_stack_hist_integrate" + pName], overlap_1D_integrate["pcb_kap_stack_hist_integrate" + pName], overlap_1D_integrate["bas_kap_stack_hist_integrate" + pName]}, leg_diff, -1., nullptr, "hist", true);
+        TCanvas* diff_int = drawCompMatt({overlap_1D_integrate["pcb_bas_stack_hist_integrate" + pName], overlap_1D_integrate["pcb_kap_stack_hist_integrate" + pName], overlap_1D_integrate["bas_kap_stack_hist_integrate" + pName]}, leg_diff, 0.00001, nullptr, "hist", true, -0.2, 0.4);
         name = geo + "_" + type + "_diff_integral" + pName;
         diff_int->Update();
         diff_int->SetTitle(name);
@@ -1243,16 +1244,17 @@ void module1DTolerances(){
         prepHists({overlap_1D_integrate["sen_bas_stack_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_stack_hist_integrate" + pName], overlap_1D_integrate["sen_kap_stack_hist_integrate" + pName]}, false, false, false, 
         	{colors["sen_bas_stack_hist"], colors["sen_pcb_stack_hist"], colors["sen_kap_stack_hist"]});
         auto leg_sen_diff = prepLegends({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, 
-                                        {constants::nameMap["sen_bas_stack_hist"], constants::nameMap["sen_pcb_stack_hist"], constants::nameMap["sen_kap_stack_hist"]}, "P");
+                                        {constants::nameMap["sen_bas_stack_hist"], constants::nameMap["sen_pcb_stack_hist"], constants::nameMap["sen_kap_stack_hist"]}, "L");
         leg_sen_diff->SetTextSize(0.03);
         leg_sen_diff->SetY1NDC(leg_sen_diff->GetY2NDC() - 0.3);
-        TCanvas* sen_diff = drawCompMatt({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, leg_sen_diff, 0.001, nullptr, "hist", true);
+        setLegend(leg_sen_diff, 1, 0.2, 0.7, 0.94, 0.87);
+        TCanvas* sen_diff = drawCompMatt({overlap_1D["sen_bas_stack_hist" + pName], overlap_1D["sen_pcb_stack_hist" + pName], overlap_1D["sen_kap_stack_hist" + pName]}, leg_sen_diff, 0.00001, nullptr, "hist", true, -0.2, 0.4);
         name = geo + "_" + type + "_sen_diff" + pName;
         sen_diff->Update();
         sen_diff->SetTitle(name);
         sen_diff->Print(constants::outputDir+"/"+type+"/"+name+".pdf");
         //integral
-        TCanvas* sen_diff_int = drawCompMatt({overlap_1D_integrate["sen_bas_stack_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_stack_hist_integrate" + pName], overlap_1D_integrate["sen_kap_stack_hist_integrate" + pName]}, leg_sen_diff, -1., nullptr, "hist", true);
+        TCanvas* sen_diff_int = drawCompMatt({overlap_1D_integrate["sen_bas_stack_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_stack_hist_integrate" + pName], overlap_1D_integrate["sen_kap_stack_hist_integrate" + pName]}, leg_sen_diff, 0.00001, nullptr, "hist", true, -0.2, 0.4);
         name = geo + "_" + type + "_sen_diff_integral" + pName;
         sen_diff_int->Update();
         sen_diff_int->SetTitle(name);
@@ -1263,16 +1265,17 @@ void module1DTolerances(){
         prepHists({overlap_1D_integrate["sen_pcb_hist_integrate" + pName], overlap_1D_integrate["kap_pcb_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_kap_x_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_kap_y_hist_integrate" + pName]}, false, false, false, 
         	{colors["sen_pcb_hist"], colors["kap_pcb_hist"], colors["sen_pcb_kap_x_hist"], colors["sen_pcb_kap_y_hist"]});
         auto leg_bond_diff = prepLegends({overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName], overlap_1D["sen_pcb_kap_x_hist" + pName], overlap_1D["sen_pcb_kap_y_hist" + pName]},
-                                         {constants::nameMap["sen_pcb_hist"], constants::nameMap["kap_pcb_hist"], constants::nameMap["sen_pcb_kap_x_hist"], constants::nameMap["sen_pcb_kap_y_hist"]}, "P");
+                                         {constants::nameMap["sen_pcb_hist"], constants::nameMap["kap_pcb_hist"], constants::nameMap["sen_pcb_kap_x_hist"], constants::nameMap["sen_pcb_kap_y_hist"]}, "L");
         leg_bond_diff->SetTextSize(0.03);
         leg_bond_diff->SetY1NDC(leg_bond_diff->GetY2NDC() - 0.3);
-        TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_kap_y_hist" + pName], overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName], overlap_1D["sen_pcb_kap_x_hist" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
+        setLegend(leg_bond_diff, 1, 0.2, 0.7, 0.94, 0.87);
+        TCanvas* bond_diff = drawCompMatt({overlap_1D["sen_pcb_kap_y_hist" + pName], overlap_1D["sen_pcb_hist" + pName], overlap_1D["kap_pcb_hist" + pName], overlap_1D["sen_pcb_kap_x_hist" + pName]}, leg_bond_diff, 0.00001, nullptr, "hist", true, 0., 2.5);
         name = geo + "_" + type + "_bond_diff" + pName;
         bond_diff->Update();
         bond_diff->SetTitle(name);
         bond_diff->Print(constants::outputDir+"/"+type+"/"+name+".pdf");
         //integral
-        TCanvas* bond_diff_int = drawCompMatt({overlap_1D_integrate["sen_pcb_kap_y_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_hist_integrate" + pName], overlap_1D_integrate["kap_pcb_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_kap_x_hist_integrate" + pName]}, leg_bond_diff, 0.001, nullptr, "hist", true);
+        TCanvas* bond_diff_int = drawCompMatt({overlap_1D_integrate["sen_pcb_kap_y_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_hist_integrate" + pName], overlap_1D_integrate["kap_pcb_hist_integrate" + pName], overlap_1D_integrate["sen_pcb_kap_x_hist_integrate" + pName]}, leg_bond_diff, 0.00001, nullptr, "hist", true, 0., 2.5);
         name = geo + "_" + type + "_bond_diff_integral" + pName;
         bond_diff_int->Update();
         bond_diff_int->SetTitle(name);
