@@ -32,8 +32,8 @@ void RedoLatexTable(TString geo = "Full");
 void ModuleStudies(){
   //module2DTolerances();
   module1DTolerances();
-  //moduleFitTolerances();
-  //RedoLatexTable("Full");
+  moduleFitTolerances();
+  RedoLatexTable("Full");
 }
 
 float Round(float var, float decimal = 1000.){ 
