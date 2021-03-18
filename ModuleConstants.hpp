@@ -1,9 +1,8 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_100K_030321/";
-  const TString baseDir = "Gaussian_Kaptonminus0_oldSensor";
-  const TString localDir = "ModuleTolerances_complete_100K_030321_small";
+  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_100K_031821/";
+  const TString localDir = "ModuleTolerances_complete_100K_031821_small";
   const bool debug = false;
   const TString whichOverlap = "sen_pcb_kap";
 
@@ -19,6 +18,7 @@ namespace constants {
   double baseValue_total = sensor_w;
   double base_kap_min = 0.100;
   double gold_min = 0.25, gold_size = 1.500, backside_min = 0.250;
+  double senToKap_min = 0.0;
   pair<double, double> backside_x_err = make_pair(0.2133, 0.1769);
   pair<double, double> backside_y_err = make_pair(0.250, 0.000);
   
@@ -33,74 +33,39 @@ namespace constants {
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
-  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
-  //vector<string> Dist = {"Gaussian_Kaptonminus0_oldSensor"};
+  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_min_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   vector<string> Dist = {
-                           "Gaussian_Kaptonminus0_oldSensor",              "Gaussian_Kaptonminus0_newSensor",              "Gaussian_Kaptonminus0_midSensor",
-                "Gaussian_PCBplus75_Kaptonplus175_oldSensor",   "Gaussian_PCBplus75_Kaptonplus175_midSensor",   "Gaussian_PCBplus75_Kaptonplus175_newSensor",
-                "Gaussian_PCBplus75_Kaptonplus200_oldSensor",   "Gaussian_PCBplus75_Kaptonplus200_midSensor",   "Gaussian_PCBplus75_Kaptonplus200_newSensor",
-                "Gaussian_PCBplus75_Kaptonplus225_oldSensor",   "Gaussian_PCBplus75_Kaptonplus225_midSensor",   "Gaussian_PCBplus75_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus175_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus200_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus225_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus175_oldSensor",  "Gaussian_PCBplus125_Kaptonplus175_midSensor",  "Gaussian_PCBplus125_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus200_oldSensor",  "Gaussian_PCBplus125_Kaptonplus200_midSensor",  "Gaussian_PCBplus125_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus225_oldSensor",  "Gaussian_PCBplus125_Kaptonplus225_midSensor",  "Gaussian_PCBplus125_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus175_oldSensor",  "Gaussian_PCBplus150_Kaptonplus175_midSensor",  "Gaussian_PCBplus150_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus200_oldSensor",  "Gaussian_PCBplus150_Kaptonplus200_midSensor",  "Gaussian_PCBplus150_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus225_oldSensor",  "Gaussian_PCBplus150_Kaptonplus225_midSensor",  "Gaussian_PCBplus150_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus175_oldSensor",  "Gaussian_PCBplus175_Kaptonplus175_midSensor",  "Gaussian_PCBplus175_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus200_oldSensor",  "Gaussian_PCBplus175_Kaptonplus200_midSensor",  "Gaussian_PCBplus175_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus225_oldSensor",  "Gaussian_PCBplus175_Kaptonplus225_midSensor",  "Gaussian_PCBplus175_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus175_oldSensor",  "Gaussian_PCBplus200_Kaptonplus175_midSensor",  "Gaussian_PCBplus200_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus200_oldSensor",  "Gaussian_PCBplus200_Kaptonplus200_midSensor",  "Gaussian_PCBplus200_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus225_oldSensor",  "Gaussian_PCBplus200_Kaptonplus225_midSensor",  "Gaussian_PCBplus200_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus175_oldSensor",  "Gaussian_PCBplus225_Kaptonplus175_midSensor",  "Gaussian_PCBplus225_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus200_oldSensor",  "Gaussian_PCBplus225_Kaptonplus200_midSensor",  "Gaussian_PCBplus225_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus225_oldSensor",  "Gaussian_PCBplus225_Kaptonplus225_midSensor",  "Gaussian_PCBplus225_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus175_oldSensor",  "Gaussian_PCBplus250_Kaptonplus175_midSensor",  "Gaussian_PCBplus250_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus200_oldSensor",  "Gaussian_PCBplus250_Kaptonplus200_midSensor",  "Gaussian_PCBplus250_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus225_oldSensor",  "Gaussian_PCBplus250_Kaptonplus225_midSensor",  "Gaussian_PCBplus250_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus175_oldSensor",  "Gaussian_PCBplus275_Kaptonplus175_midSensor",  "Gaussian_PCBplus275_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus200_oldSensor",  "Gaussian_PCBplus275_Kaptonplus200_midSensor",  "Gaussian_PCBplus275_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus225_oldSensor",  "Gaussian_PCBplus275_Kaptonplus225_midSensor",  "Gaussian_PCBplus275_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus175_oldSensor",  "Gaussian_PCBplus300_Kaptonplus175_midSensor",  "Gaussian_PCBplus300_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus200_oldSensor",  "Gaussian_PCBplus300_Kaptonplus200_midSensor",  "Gaussian_PCBplus300_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus225_oldSensor",  "Gaussian_PCBplus300_Kaptonplus225_midSensor",  "Gaussian_PCBplus300_Kaptonplus225_newSensor",
+                           "Gaussian_Kaptonminus0_senTokap150_oldSensor",              "Gaussian_Kaptonminus0_senTokap150_midSensor",              "Gaussian_Kaptonminus0_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus100_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus125_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus150_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus175_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus225_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_newSensor",
+                           "Gaussian_Kaptonminus0_senTokap185_oldSensor",              "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus100_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus125_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus150_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus175_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus225_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_newSensor",
                            };
   
   const vector<TString> Order = {
-                "Gaussian_Kaptonminus0_oldSensor", "Gaussian_Kaptonminus0_newSensor", "Gaussian_Kaptonminus0_midSensor",
-                "Gaussian_PCBplus75_Kaptonplus175_oldSensor",   "Gaussian_PCBplus75_Kaptonplus175_midSensor",   "Gaussian_PCBplus75_Kaptonplus175_newSensor",
-                "Gaussian_PCBplus75_Kaptonplus200_oldSensor",   "Gaussian_PCBplus75_Kaptonplus200_midSensor",   "Gaussian_PCBplus75_Kaptonplus200_newSensor",
-                "Gaussian_PCBplus75_Kaptonplus225_oldSensor",   "Gaussian_PCBplus75_Kaptonplus225_midSensor",   "Gaussian_PCBplus75_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus175_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus200_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus225_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus175_oldSensor",  "Gaussian_PCBplus125_Kaptonplus175_midSensor",  "Gaussian_PCBplus125_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus200_oldSensor",  "Gaussian_PCBplus125_Kaptonplus200_midSensor",  "Gaussian_PCBplus125_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus125_Kaptonplus225_oldSensor",  "Gaussian_PCBplus125_Kaptonplus225_midSensor",  "Gaussian_PCBplus125_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus175_oldSensor",  "Gaussian_PCBplus150_Kaptonplus175_midSensor",  "Gaussian_PCBplus150_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus200_oldSensor",  "Gaussian_PCBplus150_Kaptonplus200_midSensor",  "Gaussian_PCBplus150_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus150_Kaptonplus225_oldSensor",  "Gaussian_PCBplus150_Kaptonplus225_midSensor",  "Gaussian_PCBplus150_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus175_oldSensor",  "Gaussian_PCBplus175_Kaptonplus175_midSensor",  "Gaussian_PCBplus175_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus200_oldSensor",  "Gaussian_PCBplus175_Kaptonplus200_midSensor",  "Gaussian_PCBplus175_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus175_Kaptonplus225_oldSensor",  "Gaussian_PCBplus175_Kaptonplus225_midSensor",  "Gaussian_PCBplus175_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus175_oldSensor",  "Gaussian_PCBplus200_Kaptonplus175_midSensor",  "Gaussian_PCBplus200_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus200_oldSensor",  "Gaussian_PCBplus200_Kaptonplus200_midSensor",  "Gaussian_PCBplus200_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus200_Kaptonplus225_oldSensor",  "Gaussian_PCBplus200_Kaptonplus225_midSensor",  "Gaussian_PCBplus200_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus175_oldSensor",  "Gaussian_PCBplus225_Kaptonplus175_midSensor",  "Gaussian_PCBplus225_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus200_oldSensor",  "Gaussian_PCBplus225_Kaptonplus200_midSensor",  "Gaussian_PCBplus225_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus225_Kaptonplus225_oldSensor",  "Gaussian_PCBplus225_Kaptonplus225_midSensor",  "Gaussian_PCBplus225_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus175_oldSensor",  "Gaussian_PCBplus250_Kaptonplus175_midSensor",  "Gaussian_PCBplus250_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus200_oldSensor",  "Gaussian_PCBplus250_Kaptonplus200_midSensor",  "Gaussian_PCBplus250_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus250_Kaptonplus225_oldSensor",  "Gaussian_PCBplus250_Kaptonplus225_midSensor",  "Gaussian_PCBplus250_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus175_oldSensor",  "Gaussian_PCBplus275_Kaptonplus175_midSensor",  "Gaussian_PCBplus275_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus200_oldSensor",  "Gaussian_PCBplus275_Kaptonplus200_midSensor",  "Gaussian_PCBplus275_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus275_Kaptonplus225_oldSensor",  "Gaussian_PCBplus275_Kaptonplus225_midSensor",  "Gaussian_PCBplus275_Kaptonplus225_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus175_oldSensor",  "Gaussian_PCBplus300_Kaptonplus175_midSensor",  "Gaussian_PCBplus300_Kaptonplus175_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus200_oldSensor",  "Gaussian_PCBplus300_Kaptonplus200_midSensor",  "Gaussian_PCBplus300_Kaptonplus200_newSensor",
-               "Gaussian_PCBplus300_Kaptonplus225_oldSensor",  "Gaussian_PCBplus300_Kaptonplus225_midSensor",  "Gaussian_PCBplus300_Kaptonplus225_newSensor",
+                           "Gaussian_Kaptonminus0_senTokap150_oldSensor",              "Gaussian_Kaptonminus0_senTokap150_midSensor",              "Gaussian_Kaptonminus0_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus100_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus125_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus150_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus175_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus225_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_newSensor",
+                           "Gaussian_Kaptonminus0_senTokap185_oldSensor",              "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus100_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus125_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus150_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus175_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus225_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_newSensor",
                            };
   
   map<TString, string> nameMap {
@@ -116,8 +81,26 @@ namespace constants {
     {"sen_bas_stack_hist",  "Sen to Base"},
     {"pcb_kap_stack_hist",  "PCB to Kap"},
     {"bas_kap_stack_hist",  "Base to Kap"},
+    {"bas_kap_min_stack_hist",  "Max Kapton Overhang"},
     {"sen_kap_stack_hist",  "Sen to Kap"},
     {"sen_pcb_stack_hist",  "Sen to PCB"},
+    {"allOverlaps_stack_hist",  "All Overlaps"},
+  };
+
+  map<TString, Color_t> colors {
+    {"minAllOverlaps_stack_hist",       kBlue },
+    {"maxAllOverlaps_stack_hist",       kBlue },
+    {"kap_pcb_hist",       kBlue },
+    {"sen_pcb_hist",       kGreen + 3},
+    {"sen_pcb_kap_x_hist", kRed},
+    {"sen_pcb_kap_y_hist", kCyan},
+    {"pcb_bas_stack_hist", kViolet-4},
+    {"sen_bas_stack_hist", kSpring-9},
+    {"pcb_kap_stack_hist", kMagenta},
+    {"bas_kap_stack_hist", kAzure},
+    {"bas_kap_min_stack_hist", kViolet+2},
+    {"sen_kap_stack_hist", kBlue },
+    {"sen_pcb_stack_hist", kGreen + 3 },
   };
 
   const std::map<TString, TString> latexMap{
@@ -159,6 +142,9 @@ namespace constants {
     {"Kaptonplus175", R"(Kapton + 175 $\mu m$)"},
     {"Kaptonplus200", R"(Kapton + 200 $\mu m$)"},
     {"Kaptonplus225", R"(Kapton + 225 $\mu m$)"},
+    {"senTokap000", R"(\\min Sen to Kap = 0 $\mu m$)"},
+    {"senTokap150", R"(\\min Sen to Kap = 150 $\mu m$)"},
+    {"senTokap185", R"(\\min Sen to Kap = 185 $\mu m$)"},
     {"Nominal", "Nominal"},
     {"Gaussian", "Gaussian"},
     {"Flat", "Flat"},
@@ -169,7 +155,7 @@ namespace constants {
     {"oldSensor", R"([200 $\mu m$])"},
     {"newSplitSensor", R"( & [50 $\mu m$])"},
     {"midSplitSensor", R"( & [100 $\mu m$])"},
-    {"oldSplitSensor", R"(} & [200 $\mu m$])"},
+    {"oldSplitSensor", R"(}} & [200 $\mu m$])"},
     {"Fit", ""},
     {"Worst", ""},
     {"integrate", ""},
@@ -185,6 +171,7 @@ namespace constants {
     {"KaptonMultiDist", ""},
     {"TotalBadModules", ""},
     {"Sensor", ""},
+    {"BasToKapMax", "Max Base to Kap"},
     {"BasToKap", "Base to Kap"},
     {"SenToPCB", "PCB to Sen"},
     {"PCBToBas", "Base to PCB"},
@@ -221,6 +208,9 @@ namespace constants {
     {"Kaptonplus175", R"(Kapton + 175 #mum)"},
     {"Kaptonplus200", R"(Kapton + 200 #mum)"},
     {"Kaptonplus225", R"(Kapton + 225 #mum)"},
+    {"senTokap000", R"(min Sen to Kap = 0 #mum)"},
+    {"senTokap150", R"(min Sen to Kap = 150 #mum)"},
+    {"senTokap185", R"(min Sen to Kap = 185 #mum)"},
     {"Nominal", ""},
     {"Gaussian", "Gaussian"},
     {"Flat", "Flat"},
