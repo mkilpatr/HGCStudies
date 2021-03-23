@@ -1,6 +1,7 @@
 import os
 import json
 import argparse
+import re
 
 parser = argparse.ArgumentParser(
         description='Produce or print limits based on existing datacards')
@@ -15,35 +16,21 @@ def write_json(data, filename=args.baseDir + '_small/TestFull/Full_BadmoduleTole
     	json.dump(data, f, indent=2, ensure_ascii=False)
 
 eosDir = "/eos/uscms/store/user/mkilpatr/13TeV/" + args.baseDir + "/"
-Dist = [
-            "Gaussian_Kaptonminus0_senTokap150_oldSensor",              "Gaussian_Kaptonminus0_senTokap150_midSensor",              "Gaussian_Kaptonminus0_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus100_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus125_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus150_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus175_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus200_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap150_newSensor",
-"Gaussian_PCBplus100_Kaptonplus225_senTokap150_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap150_newSensor",
-            "Gaussian_Kaptonminus0_senTokap185_oldSensor",              "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus100_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus125_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus125_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus150_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus175_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus175_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus200_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
-"Gaussian_PCBplus100_Kaptonplus225_senTokap185_oldSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus225_senTokap185_newSensor",
-]
+Dist = os.listdir(eosDir)
 
 os.makedirs(os.path.join(args.baseDir + "_small", "TestFull"))
 
-with open("/eos/uscms/store/user/mkilpatr/13TeV/" + args.baseDir + "/Gaussian_Kaptonminus0_senTokap150_oldSensor_Full/Full_BadmoduleTolerances.json", "a+") as new:
+with open("/eos/uscms/store/user/mkilpatr/13TeV/" + args.baseDir + "/" + Dist[0] + "/Full_BadmoduleTolerances.json", "a+") as new:
     newData = json.load(new)
     newData['Worst']["Bad Components"] = {}
     newData['Worst']["Bad Overlaps"] = {}
 
 for d in Dist:
-    with open(eosDir+d+"_Full/Full_BadmoduleTolerances.json", "r") as lepcr:
+    with open(eosDir+d+"/Full_BadmoduleTolerances.json", "r") as lepcr:
         lep_insert = json.load(lepcr)
-        newData['Worst']["Bad Overlaps"][d] = {}
+        loc = d.replace('_Full', '')
+        newData['Worst']["Bad Overlaps"][loc] = {}
         newData['Worst']["Bad Components"].update(lep_insert['Worst']["Bad Components"])
-        newData['Worst']["Bad Overlaps"][d].update(lep_insert['Worst']["Bad Overlaps"][d])
+        newData['Worst']["Bad Overlaps"][loc].update(lep_insert['Worst']["Bad Overlaps"][loc])
 write_json(newData)
 
