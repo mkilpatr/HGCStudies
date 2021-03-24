@@ -1,8 +1,8 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_100K_032221_fixNorm/";
-  const TString localDir = "ModuleTolerances_complete_100K_032221_fixNorm_small";
+  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_100K_032321/";
+  const TString localDir = "ModuleTolerances_complete_100K_032321_small";
   const bool debug = false;
   const TString whichOverlap = "sen_pcb_kap";
 
@@ -33,7 +33,7 @@ namespace constants {
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
-  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_min_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
+  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   vector<string> Dist = {
                            "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
                "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
@@ -60,7 +60,6 @@ namespace constants {
     {"sen_bas_stack_hist",  "Sen to Base"},
     {"pcb_kap_stack_hist",  "PCB to Kap"},
     {"bas_kap_stack_hist",  "Base to Kap"},
-    {"bas_kap_min_stack_hist",  "Max Kapton Overhang"},
     {"sen_kap_stack_hist",  "Sen to Kap"},
     {"sen_pcb_stack_hist",  "Sen to PCB"},
     {"allOverlaps_stack_hist",  "All Overlaps"},
@@ -75,7 +74,6 @@ namespace constants {
     {"sen_bas_stack_hist",      "SenToBas"},
     {"pcb_kap_stack_hist",      "PCBToKap"},
     {"bas_kap_stack_hist",      "BasToKap"},
-    {"bas_kap_min_stack_hist",  "BasToKapMax"},
     {"sen_kap_stack_hist",      "SenToKap"},
     {"sen_pcb_stack_hist",      "SenToPCB"},
   };
@@ -91,7 +89,6 @@ namespace constants {
     {"sen_bas_stack_hist", kSpring-9},
     {"pcb_kap_stack_hist", kMagenta},
     {"bas_kap_stack_hist", kAzure},
-    {"bas_kap_min_stack_hist", kViolet+2},
     {"sen_kap_stack_hist", kBlue },
     {"sen_pcb_stack_hist", kGreen + 3 },
   };
@@ -122,21 +119,21 @@ namespace constants {
     {"PCBplus300", R"(PCB + 150 $\mu m$)"},
     {"Kaptonminus0", R"(Nominal)"},
     {"Kaptonminus25", R"(Kapton - 12.5 $\mu m$)"},
-    {"Kaptonplus25", R"(Kapton + 12.5 $\mu m$)"},
+    {"Kaptonplus25", R"(Kapton overhang + 12.5 $\mu m$)"},
     {"Kaptonminus50", R"(Kapton - 25 $\mu m$)"},
-    {"Kaptonplus50", R"(Kapton + 25 $\mu m$)"},
+    {"Kaptonplus50", R"(Kapton overhang + 25 $\mu m$)"},
     {"Kaptonminus150", R"(Kapton - 75 $\mu m$)"},
     {"Kaptonminus170", R"(Kapton - 85 $\mu m$)"},
     {"Kaptonminus75", R"(Kapton - 37.5 $\mu m$)"},
-    {"Kaptonplus75", R"(Kapton + 37.5 $\mu m$)"},
-    {"Kaptonplus100", R"(Kapton + 50 $\mu m$)"},
-    {"Kaptonplus125", R"(Kapton + 62.5 $\mu m$)"},
-    {"Kaptonplus150", R"(Kapton + 75 $\mu m$)"},
-    {"Kaptonplus175", R"(Kapton + 87.5 $\mu m$)"},
-    {"Kaptonplus200", R"(Kapton + 100 $\mu m$)"},
-    {"Kaptonplus225", R"(Kapton + 112.5 $\mu m$)"},
-    {"Kaptonplus280", R"(Kapton + 140 $\mu m$)"},
-    {"Kaptonplus400", R"(Kapton + 200 $\mu m$)"},
+    {"Kaptonplus75", R"(Kapton overhang + 37.5 $\mu m$)"},
+    {"Kaptonplus100", R"(Kapton overhang + 50 $\mu m$)"},
+    {"Kaptonplus125", R"(Kapton overhang + 62.5 $\mu m$)"},
+    {"Kaptonplus150", R"(Kapton overhang + 75 $\mu m$)"},
+    {"Kaptonplus175", R"(Kapton overhang + 87.5 $\mu m$)"},
+    {"Kaptonplus200", R"(Kapton overhang + 100 $\mu m$)"},
+    {"Kaptonplus225", R"(Kapton overhang + 112.5 $\mu m$)"},
+    {"Kaptonplus280", R"(Kapton overhang + 140 $\mu m$)"},
+    {"Kaptonplus400", R"(Kapton overhang + 200 $\mu m$)"},
     {"senTokap000", R"(\\Incomplete coverage = 0 $\mu m$}})"},
     {"senTokap100", R"(\\Incomplete coverage = 100 $\mu m$}})"},
     {"senTokap150", R"(\\Incomplete coverage = 150 $\mu m$}})"},
@@ -199,21 +196,21 @@ namespace constants {
     {"PCBplus300", R"(PCB + 150 #mum)"},
     {"Kaptonminus0", R"(Nominal)"},
     {"Kaptonminus25", R"(Kapton - 12.5 #mum)"},
-    {"Kaptonplus25", R"(Kapton + 12.5 #mum)"},
+    {"Kaptonplus25", R"(Kapton overhang + 12.5 #mum)"},
     {"Kaptonminus50", R"(Kapton - 25 #mum)"},
-    {"Kaptonplus50", R"(Kapton + 25 #mum)"},
+    {"Kaptonplus50", R"(Kapton overhang + 25 #mum)"},
     {"Kaptonminus150", R"(Kapton - 75 #mum)"},
     {"Kaptonminus170", R"(Kapton - 85 #mum)"},
     {"Kaptonminus75", R"(Kapton - 37.5 #mum)"},
-    {"Kaptonplus75", R"(Kapton + 37.5 #mum)"},
-    {"Kaptonplus100", R"(Kapton + 50 #mum)"},
-    {"Kaptonplus125", R"(Kapton + 62.5 #mum)"},
-    {"Kaptonplus150", R"(Kapton + 75 #mum)"},
-    {"Kaptonplus175", R"(Kapton + 87.5 #mum)"},
-    {"Kaptonplus200", R"(Kapton + 100 #mum)"},
-    {"Kaptonplus225", R"(Kapton + 112.5 #mum)"},
-    {"Kaptonplus280", R"(Kapton + 140 #mum)"},
-    {"Kaptonplus400", R"(Kapton + 200 #mum)"},
+    {"Kaptonplus75", R"(Kapton overhang + 37.5 #mum)"},
+    {"Kaptonplus100", R"(Kapton overhang + 50 #mum)"},
+    {"Kaptonplus125", R"(Kapton overhang + 62.5 #mum)"},
+    {"Kaptonplus150", R"(Kapton overhang + 75 #mum)"},
+    {"Kaptonplus175", R"(Kapton overhang + 87.5 #mum)"},
+    {"Kaptonplus200", R"(Kapton overhang + 100 #mum)"},
+    {"Kaptonplus225", R"(Kapton overhang + 112.5 #mum)"},
+    {"Kaptonplus280", R"(Kapton overhang + 140 #mum)"},
+    {"Kaptonplus400", R"(Kapton overhang + 200 #mum)"},
     {"senTokap000", R"(Incomplete coverage = 0 #mum)"},
     {"senTokap100", R"(Incomplete coverage = 100 #mum)"},
     {"senTokap150", R"(Incomplete coverage = 150 #mum)"},
