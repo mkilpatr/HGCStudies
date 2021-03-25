@@ -30,7 +30,7 @@ void RedoLatexTable(TString geo = "Full");
 
 void ModuleStudies(){
   //module2DTolerances();
-  //module1DTolerances();
+  module1DTolerances();
   moduleFitTolerances();
   RedoLatexTable("Full");
 }
@@ -351,13 +351,33 @@ vector<double> findHighXbin(TH1D* h, bool swi = false){
   return output;
 }
 
-vector<double> findProbabilities(TH1D* h){
-  vector<double> xValue = {-0.185, -0.160, -0.135, -0.110, -0.060, -0.035, 0.0};
+map<TString, double>  findProbabilities(TH1D* h){
+  map<TString, double> xValue  = {
+      	{"-0.185", -0.185},
+      	{"-0.175", -0.175},
+      	{"-0.150", -0.150},
+      	{"-0.125", -0.125},
+      	{"-0.100", -0.100},
+      	{"-0.075", -0.075},
+      	{"-0.050", -0.050},
+      	{"-0.025", -0.025},
+      	{ "0.000",  0.000},
+      	{ "0.025",  0.025},
+      	{ "0.050",  0.050},
+      	{ "0.075",  0.075},
+      	{ "0.100",  0.100},
+      	{ "0.125",  0.125},
+      	{ "0.150",  0.150},
+      	{ "0.175",  0.175},
+      	{ "0.200",  0.200},
+      	{ "0.225",  0.225},
+      	{ "0.250",  0.250},
+      };
   vector<double> output;
   int nbins = h->GetNbinsX();
-  for(int iX = 0; iX != (signed)xValue.size(); iX++) {
-    int ibin = h->FindBin(xValue[iX]);
-    output.push_back(h->GetBinContent(ibin));
+  for(std::map<TString,double>::iterator iter = xValue.begin(); iter != xValue.end(); ++iter)
+    int ibin = h->FindBin(iter->second);
+    output.emplace(iter->first, h->GetBinContent(ibin));
   }
   return output;
 }
@@ -1251,7 +1271,7 @@ void module1DTolerances(){
         }
         prepHists(histNorm, true, false, false);
         prepHists(hist, false, false, false);
-        vector<TH1*> intHist = getIntegratedHist(histNorm, false, false, false);
+        vector<TH1*> intHist = getIntegratedHist(histNorm, TString(histNorm[0]->GetName()).Contains("max"), false, false);
         for(auto iP = 1; iP != nPeaks + 1; iP++){
           hist[iP]->SetTitle(";Overhang [mm];Modules");
           intHist[iP]->SetTitle(";Overhang [mm];Probability");
@@ -1268,7 +1288,7 @@ void module1DTolerances(){
         TH1* histNorm = (TH1 *)hist->Clone(TString(hist->GetName())+"_norm");
         prepHists({hist}, false, false, false);
         prepHists({histNorm}, true, false, false);
-        TH1* intHist = getIntegratedHist(histNorm, false, false, false);
+        TH1* intHist = getIntegratedHist(histNorm, TString(histNorm->GetName()).Contains("max"), false, false);
         hist->SetTitle(";Overhang [mm];Modules");
         intHist->SetTitle(";Overhang [mm];Probability");
         overlap_1D.insert(pair<TString, TH1D*>(TString(hist->GetName()) + "_Peak" + to_string(1), (TH1D*)hist));
@@ -1545,12 +1565,13 @@ void moduleFitTolerances(){
           groupName = groupString(iter->first, "Kaptonplus");
           if(!TString(groupName).Contains(overlap_1D_integrate_minus_split[iK])) continue;
           if(constants::debug) cout << iter->first << " " << iter->second->GetName() << endl;
+          iter->second->SetLineWidth(3);
           addLegendEntry(leg, iter->second, translateString(groupString(iter->first, "Kaptonplus", "_", true), constants::plotMap, "_", ", "), "L");
           plots.push_back(iter->second);
         }
         leg->SetTextSize(0.03);
         leg->SetY1NDC(leg->GetY2NDC() - 0.3);
-        prepHists(plots, false, false, false, {kRed, kBlue, kMagenta});
+        prepHists(plots, false, false, false, {kAzure+6, kSpring-9, 797});
         //integral
         setLegend(leg, 1, 0.2, 0.7, 0.94, 0.87);
         TString addString = overlap_1D_integrate_minus_split[iK];
@@ -1576,12 +1597,13 @@ void moduleFitTolerances(){
           groupName = groupString(iter->first, "Kaptonplus");
           if(!TString(groupName).Contains(overlap_1D_integrate_minus_split[iK])) continue;
           if(constants::debug) cout << iter->first << " " << iter->second->GetName() << endl;
+          iter->second->SetLineWidth(3);
           addLegendEntry(leg, iter->second, translateString(groupString(iter->first, "Kaptonplus", "_", true), constants::plotMap, "_", ", "), "L");
           plots.push_back(iter->second);
         }
         leg->SetTextSize(0.03);
         leg->SetY1NDC(leg->GetY2NDC() - 0.3);
-        prepHists(plots, false, false, false, {kRed, kBlue, kMagenta});
+        prepHists(plots, false, false, false, {kAzure+6, kSpring-9, 797});
         //integral
         setLegend(leg, 1, 0.2, 0.7, 0.94, 0.87);
         diff = drawCompMatt(plots, leg, 0.1, &plotextra, "hist", true, xMin, xMax, overlap_1D_integrate_minus_kind[iK].Contains("BasToKap"));

@@ -22,7 +22,7 @@ namespace constants {
   pair<double, double> backside_x_err = make_pair(0.2133, 0.1769);
   pair<double, double> backside_y_err = make_pair(0.250, 0.000);
   
-  int max = 100000;
+  int max = 300000;
   double weight = 30000./double(max);
 
   int nbins = 650;
@@ -37,13 +37,13 @@ namespace constants {
   vector<string> Dist = {
                            "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
                "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus280_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
                "Gaussian_PCBplus100_Kaptonplus400_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
                            };
   
   const vector<TString> Order = {
                "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus280_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
                "Gaussian_PCBplus100_Kaptonplus400_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
                            };
   
@@ -132,7 +132,7 @@ namespace constants {
     {"Kaptonplus175", R"(Kapton overhang + 87.5 $\mu m$)"},
     {"Kaptonplus200", R"(Kapton overhang + 100 $\mu m$)"},
     {"Kaptonplus225", R"(Kapton overhang + 112.5 $\mu m$)"},
-    {"Kaptonplus280", R"(Kapton overhang + 140 $\mu m$)"},
+    {"Kaptonplus300", R"(Kapton overhang + 150 $\mu m$)"},
     {"Kaptonplus400", R"(Kapton overhang + 200 $\mu m$)"},
     {"senTokap000", R"(\\Incomplete coverage = 0 $\mu m$}})"},
     {"senTokap100", R"(\\Incomplete coverage = 100 $\mu m$}})"},
@@ -209,7 +209,7 @@ namespace constants {
     {"Kaptonplus175", R"(Kapton overhang + 87.5 #mum)"},
     {"Kaptonplus200", R"(Kapton overhang + 100 #mum)"},
     {"Kaptonplus225", R"(Kapton overhang + 112.5 #mum)"},
-    {"Kaptonplus280", R"(Kapton overhang + 140 #mum)"},
+    {"Kaptonplus300", R"(Kapton overhang + 150 #mum)"},
     {"Kaptonplus400", R"(Kapton overhang + 200 #mum)"},
     {"senTokap000", R"(Incomplete coverage = 0 #mum)"},
     {"senTokap100", R"(Incomplete coverage = 100 #mum)"},
