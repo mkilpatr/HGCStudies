@@ -30,7 +30,7 @@ void RedoLatexTable(TString geo = "Full");
 
 void ModuleStudies(){
   //module2DTolerances();
-  module1DTolerances();
+  //module1DTolerances();
   moduleFitTolerances();
   RedoLatexTable("Full");
 }
@@ -144,7 +144,8 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
     if(type.key() == "Worst") continue;
     outfile << R"(\newpage)" << endl;
     outfile << R"(\begin{center})" << endl;
-    outfile << R"(\begin{longtable}{| c | c | c | c | c | c |})" << endl;
+    outfile << R"(\resizebox*{1.0\textwidth}{!}{)" << endl;
+    outfile << R"(\begin{tabular}{| c | c | c | c | c | c |})" << endl;
     outfile << R"(\hline )" << endl;
 
     int ncols = 5;
@@ -157,6 +158,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
         for (json::iterator comp = jtot[type.key()].begin(); comp != jtot[type.key()].end(); ++comp) {
           if(!TString(comp.key()).Contains(constants::Order[i])) continue;
           if(TString(comp.key()).Contains("Nominal")) continue;
+          if(TString(comp.key()).Contains("_max")) continue;
           TString multi = "";
           TString buff = TString(comp.key());
           buff.ReplaceAll("Sensor", "SplitSensor");
@@ -174,23 +176,24 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
             	         << R"( $N_{mod} = $)" << Round(jtot["Worst"][dist.key()][comp.key()][2], 100000.)*30000  << R"( \\)" << endl;
 
         }//for comparison
-      if(i % 3 == 2) outfile << R"(\hline)" << endl;
+      if(i % 2 ==12) outfile << R"(\hline)" << endl;
       }//for constants::Order
     }//for overlap
 
     outfile << R"(\hline)" << endl;
-    outfile << R"(\end{longtable})" << endl;
+    outfile << R"(\end{tabular}})" << endl;
     outfile << R"(\end{center})" << endl;
   }
 
   outfile << R"(\newpage)" << endl;
   outfile << R"(\begin{center})" << endl;
-  outfile << R"(\begin{longtable}{| c | c | c | c | c | c | c | c | c |})" << endl;
+  outfile << R"(\resizebox*{1.0\textwidth}{!}{)" << endl;
+  outfile << R"(\begin{tabular}{| c | c | c | c | c | c | c | c | c | c | c | c |})" << endl;
   outfile << R"(\hline )" << endl;
 
-  int ncols = 5;
+  int ncols = 12;
   //key for value type
-  outfile << R"(Widths & \t Sensor Placement & \t 0\% & \t 25\% & \t 50\% & \t 75\% & \t 125\% & \t 150\% & \t 185\% \t \\)" << endl;
+  outfile << R"(Widths & \t Sensor Placement & 0 $[\mu m]$ & 25 $[\mu m]$ & 50 $[\mu m]$ & 75 $[\mu m]$ & 100 $[\mu m]$ & 125 $[\mu m]$ & 150 $[\mu m]$ & 175 $[\mu m]$ & 200 $[\mu m]$ & 225 $[\mu m]$ \\)" << endl;
   for (json::iterator dist = jtot["BinNum"].begin(); dist != jtot["BinNum"].end(); ++dist) {
     //key for overlap comparison
     outfile << R"(\hline)" << endl << R"(\multicolumn{)"+to_string(ncols)+R"(}{c}{$\vcenter{)" + dist.key() + R"(}$} \\)" << endl << R"(\hline)" << endl;
@@ -198,31 +201,35 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
       for (json::iterator comp = jtot["Distribution"].begin(); comp != jtot["Distribution"].end(); ++comp) {
         if(!TString(comp.key()).Contains(constants::Order[i])) continue;
         if(TString(comp.key()).Contains("Nominal")) continue;
+        if(TString(comp.key()).Contains("Peak")) continue;
         TString multi = "";
         TString buff = TString(comp.key());
         buff.ReplaceAll("Sensor", "SplitSensor");
         buff.ReplaceAll("Gaussian_", "");
+        buff.ReplaceAll("_max", "");
         if(buff.Contains("new")) buff = "newSplitSensor";
-        if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
 
         if(constants::debug) cout << comp.key() << " " << dist.key() << endl;
         if(buff.Contains("mid")) multi = R"( \multirow{2}{*}{\shortstack{)";
         outfile << multi << translateString(buff, constants::latexMap, "_", ", ") << " & \t " 
-	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["Zero"], 100000.) << " & \t " 
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["TwentyFive"], 100000.) << " & \t "
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["Fifty"], 100000.) << " & \t "
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["SeventyFive"], 100000.) << " & \t "
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["OneTwentyFive"], 100000.) << " & \t "
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["OneFifty"], 100000.) << " & \t "
-    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["OneEightyFive"], 100000.) << R"( \\)" << endl;
+	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.000000"], 100000.) << " & \t " 
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.025000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.050000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.075000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.100000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.125000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.150000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.175000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.200000"], 100000.) << " & \t "
+    	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.225000"], 100000.) << R"( \\)" << endl;
 
       }//for comparison
-    if(i % 3 == 2) outfile << R"(\hline)" << endl;
+    if(i % 2 == 1) outfile << R"(\hline)" << endl;
     }//for constants::Order
   }//for overlap
 
   outfile << R"(\hline)" << endl;
-  outfile << R"(\end{longtable})" << endl;
+  outfile << R"(\end{tabular}})" << endl;
   outfile << R"(\end{center})" << endl;
 
   outfile << R"(\end{document})" << endl;
@@ -351,33 +358,39 @@ vector<double> findHighXbin(TH1D* h, bool swi = false){
   return output;
 }
 
-map<TString, double>  findProbabilities(TH1D* h){
-  map<TString, double> xValue  = {
-      	{"-0.185", -0.185},
-      	{"-0.175", -0.175},
-      	{"-0.150", -0.150},
-      	{"-0.125", -0.125},
-      	{"-0.100", -0.100},
-      	{"-0.075", -0.075},
-      	{"-0.050", -0.050},
-      	{"-0.025", -0.025},
-      	{ "0.000",  0.000},
-      	{ "0.025",  0.025},
-      	{ "0.050",  0.050},
-      	{ "0.075",  0.075},
-      	{ "0.100",  0.100},
-      	{ "0.125",  0.125},
-      	{ "0.150",  0.150},
-      	{ "0.175",  0.175},
-      	{ "0.200",  0.200},
-      	{ "0.225",  0.225},
-      	{ "0.250",  0.250},
+map<string, double>  findProbabilities(TH1D* h){
+  vector<double> xValue  = {
+      	-0.185,
+      	-0.175,
+      	-0.150,
+      	-0.125,
+      	-0.100,
+      	-0.075,
+      	-0.050,
+      	-0.025,
+      	 0.000,
+      	 0.025,
+      	 0.050,
+      	 0.075,
+      	 0.100,
+      	 0.125,
+      	 0.150,
+      	 0.175,
+      	 0.200,
+      	 0.225,
+      	 0.250,
+      	 0.275,
+      	 0.300,
+      	 0.325,
+      	 0.350,
+      	 0.375,
       };
-  vector<double> output;
+  map<string, double> output;
   int nbins = h->GetNbinsX();
-  for(std::map<TString,double>::iterator iter = xValue.begin(); iter != xValue.end(); ++iter)
-    int ibin = h->FindBin(iter->second);
-    output.emplace(iter->first, h->GetBinContent(ibin));
+  //for(std::map<string,TH2Poly*>::iterator iter = overlap.begin(); iter != overlap.end(); ++iter){
+  for(auto x : xValue){
+    int ibin = h->FindBin(x);
+    output.insert(std::pair<string, double>(to_string(x), h->GetBinContent(ibin)));
   }
   return output;
 }
@@ -504,7 +517,7 @@ vector < pair <double, pair <double, double> > > newShapeInput(){
 }
 
 json makeJSONModuleLatex(vector< pair< pair< string, string>, pair< double, double > > >& fit, vector< pair< pair< string, string>, pair< pair< double, double >, double > > >& worst,
-                         vector< pair< pair< string, string>, pair< pair< pair< double, double >, pair< double, double>>, pair< pair<double, double>, double >>>>& prob){
+                         vector< pair< pair< string, string>, pair< string, double> > >& prob){
   json j;
   int binnum = 0;
   for ( const auto &it : fit ) {
@@ -521,13 +534,10 @@ json makeJSONModuleLatex(vector< pair< pair< string, string>, pair< double, doub
     j["Worst"][it.first.second][it.first.first] = {it.second.first.first*1000, it.second.first.second*1000, it.second.second};
   }
   for ( const auto & it : prob ) {
-    j["Worst"]["Probability"][it.first.second][it.first.first]["Zero"]          = it.second.first.first.first;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["TwentyFive"]    = it.second.first.first.second;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["Fifty"]         = it.second.first.second.first;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["SeventyFive"]   = it.second.first.second.second;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["OneTwentyFive"] = it.second.second.first.first;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["OneFifty"]      = it.second.second.first.second;
-    j["Worst"]["Probability"][it.first.second][it.first.first]["OneEightyFive"] = it.second.second.second;
+    if(TString(it.first.first).Contains("_max")){
+      j["Distribution"][it.first.first] = it.first.first;
+    }
+    j["Worst"]["Probability"][it.first.second][it.first.first][it.second.first] = it.second.second;
   }
 
   return j;
@@ -1397,12 +1407,11 @@ TString groupString(TString name, TString remove, TString splitBy = "_", bool fl
 
 TH1D* rebinAxis(TH1D* h){
   TString name = !TString(h->GetName()).Contains("_integrate")  ? ";Overhang [#mum];Modules" : ";Overhang [#mum];Probability";
-  TH1D* hRebin = new TH1D(TString(h->GetName()) + "_rebin", name, 400, -100, 700);
+  TH1D* hRebin = new TH1D(TString(h->GetName()) + "_rebin", name, 300, -200, 400);
   
   for(int ibin = 0; ibin != h->GetNbinsX() + 1; ibin++){
     double x = h->GetXaxis()->GetBinCenter(ibin);
     double y = h->GetBinContent(ibin);
-    x += 0.185;
     x *= 1000;
     hRebin->SetBinContent(hRebin->FindBin(x), y);
   }
@@ -1418,7 +1427,7 @@ void moduleFitTolerances(){
 
   for(auto &geo_str : constants::Geometry){
     //vector( pair( pair(       ,       ), pair( pair( pair(       ,        ), pair(       ,       )), pair( pair(      ,       ), ))));
-    vector< pair< pair< string, string>, pair< pair< pair< double, double >, pair< double, double>>, pair< pair<double, double>, double>>>> prob_values = {};
+    vector< pair< pair< string, string>, pair< string, double> > > prob_values = {};
     vector< pair< pair< string, string>, pair< pair< double, double >, double > > > worst_values = {};
     vector< pair< pair< string, string>, pair< double, double > > > fit_values = {};
     TString geo = TString(geo_str);
@@ -1461,9 +1470,9 @@ void moduleFitTolerances(){
         if(!hName.Contains("_integrate")) overlap_1D.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         else                              overlap_1D_integrate.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         //BasToKap
-        if(hName.Contains(stackType) && (type.Contains("Kaptonminus") || type.Contains("Kaptonplus")) && type.Contains("Gaussian")){
+        if(hName.Contains(stackType) && type.Contains("Kaptonplus")){
           TString kaptonType = TString(prefix+"_" + constants::compMap[stackType]+ "_" + type + "_" + hName);
-          TH1D* hRebin = stackType.Contains("bas_kap_stack_hist") ? rebinAxis(h) : h;
+          TH1D* hRebin = rebinAxis(h);
           if(swi.Contains("_integrate")) overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
           else overlap_1D_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
           if(type.Contains("Kaptonplus200")){
@@ -1526,7 +1535,7 @@ void moduleFitTolerances(){
         //Get Fit
         iter->second->Fit("gausn", "Q");
         TF1* avg_param = (TF1*)iter->second->GetFunction("gausn");
-        if(name_buff.Contains("bas_kap")) cout << name << " " << iter->second->GetName() << ": " << avg_param->GetParameter(1)*1000 + 185 << " +/- " << avg_param->GetParameter(2)*1000 << endl;
+        if(name_buff.Contains("bas_kap")) cout << name << " " << iter->second->GetName() << ": " << avg_param->GetParameter(1)*1000 << " +/- " << avg_param->GetParameter(2)*1000 << endl;
         if(!isnan(avg_param->GetParameter(1))) fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(avg_param->GetParameter(1), avg_param->GetParameter(2))));
         else fit_values.push_back(make_pair(make_pair(type_str + peak, name), make_pair(0., 0.)));
       }//for actual fit values
@@ -1535,13 +1544,11 @@ void moduleFitTolerances(){
         if(TString(iter->first).Contains("_Peak0")) continue;
 
         vector<double> max_tol = findHighXbin(iter->second);
-        vector<double> prob = findProbabilities(iter->second);
+        map<string, double> prob = findProbabilities(iter->second);
         TString name_buff = iter->first;
         string prefix = "_max";
         if(name_buff.Contains("Peak1_integrate")) prefix = "_Peak1";
         if(name_buff.Contains("min_integrate")) prefix = "_min";
-        name_buff.ReplaceAll(prefix + "_integrate", "");
-        name_buff.ReplaceAll(prefix + "_integrate", "");
         name_buff.ReplaceAll(prefix + "_integrate", "");
         string name = constants::nameMap[name_buff];
         string peak = "";
@@ -1550,7 +1557,8 @@ void moduleFitTolerances(){
         else if(iter->first.Contains("Peak3")) peak = "_Peak3";
 
         worst_values.push_back(make_pair(make_pair(type_str + prefix, name), make_pair(make_pair(max_tol[0]/1000, max_tol[1]/1000), max_tol[2])));
-        prob_values.push_back(make_pair(make_pair(type_str + prefix, name), make_pair(make_pair(make_pair(prob[0], prob[1]), make_pair(prob[2], prob[3])), make_pair(make_pair(prob[4], prob[5]), prob[6]))));
+        for(std::map<string,double>::iterator iter = prob.begin(); iter != prob.end(); ++iter)
+          prob_values.push_back(make_pair(make_pair(type_str + prefix, name), make_pair(iter->first, iter->second)));
       }// for worst possible value
     }//Different distribution type
 
@@ -1575,12 +1583,12 @@ void moduleFitTolerances(){
         //integral
         setLegend(leg, 1, 0.2, 0.7, 0.94, 0.87);
         TString addString = overlap_1D_integrate_minus_split[iK];
-        double xMin = -0.2;
-        double xMax = 0.4;
-        if(overlap_1D_integrate_minus_kind[iK].Contains("BasToKap")){
-          xMin = -100.;
-          xMax = 700.;
-        }
+        double xMin = -200;
+        double xMax = 400;
+        //if(overlap_1D_integrate_minus_kind[iK].Contains("BasToKap")){
+        //  xMin = -100.;
+        //  xMax = 700.;
+        //}
         addString.ReplaceAll("Peak1_", "");
         addString.ReplaceAll("min_", "");
         addString.ReplaceAll("max_", "");
