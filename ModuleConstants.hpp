@@ -1,10 +1,10 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_25Mar21/";
-  const TString localDir = "ModuleTolerances_complete_300K_25Mar21_small";
-  const bool debug = false;
-  const TString whichOverlap = "sen_pcb_kap";
+  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_11Apr21/";
+  const TString localDir = "ModuleTolerances_complete_300K_11Apr21_small";
+  const bool debug = true;
+  const TString whichOverlap = "bas_kap_stack_hist";
 
   //Define Constant Widths
   const double pcb_w_const = 166.64, sensor_w_const = 166.57, kapton_w_const = 166.94, baseplate_w_const = 166.94;
@@ -33,18 +33,39 @@ namespace constants {
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
-  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
+  vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   vector<string> Dist = {
                            "Gaussian_Kaptonminus0_senTokap185_midSensor",              "Gaussian_Kaptonminus0_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus400_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus210_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus160_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus220_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus170_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus230_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus180_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus240_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus190_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus250_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus260_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus210_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus270_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus220_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus280_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus230_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus290_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus240_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus250_senTokap185_newSensor",
                            };
   
   const vector<TString> Order = {
-               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
-               "Gaussian_PCBplus100_Kaptonplus400_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               								   "Gaussian_PCBplus100_Kaptonplus150_senTokap185_newSensor",
+               								   "Gaussian_PCBplus100_Kaptonplus160_senTokap185_newSensor",
+               								   "Gaussian_PCBplus100_Kaptonplus170_senTokap185_newSensor",
+               								   "Gaussian_PCBplus100_Kaptonplus180_senTokap185_newSensor",
+               								   "Gaussian_PCBplus100_Kaptonplus190_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus200_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus200_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus210_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus210_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus220_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus220_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus230_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus230_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus240_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus240_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus250_senTokap185_midSensor",  "Gaussian_PCBplus100_Kaptonplus250_senTokap185_newSensor",
+               "Gaussian_PCBplus100_Kaptonplus260_senTokap185_midSensor",  
+               "Gaussian_PCBplus100_Kaptonplus270_senTokap185_midSensor",  
+               "Gaussian_PCBplus100_Kaptonplus280_senTokap185_midSensor",  
+               "Gaussian_PCBplus100_Kaptonplus290_senTokap185_midSensor",  
+               "Gaussian_PCBplus100_Kaptonplus300_senTokap185_midSensor",  
                            };
   
   map<TString, string> nameMap {
@@ -60,6 +81,7 @@ namespace constants {
     {"sen_bas_stack_hist",  "Sen to Base"},
     {"pcb_kap_stack_hist",  "PCB to Kap"},
     {"bas_kap_stack_hist",  "Base to Kap"},
+    {"bas_kap_sen_stack_hist",  "Base to Kap w/ Sen"},
     {"sen_kap_stack_hist",  "Sen to Kap"},
     {"sen_pcb_stack_hist",  "Sen to PCB"},
     {"allOverlaps_stack_hist",  "All Overlaps"},
@@ -74,6 +96,7 @@ namespace constants {
     {"sen_bas_stack_hist",      "SenToBas"},
     {"pcb_kap_stack_hist",      "PCBToKap"},
     {"bas_kap_stack_hist",      "BasToKap"},
+    {"bas_kap_sen_stack_hist",  "BasToKapWSen"},
     {"sen_kap_stack_hist",      "SenToKap"},
     {"sen_pcb_stack_hist",      "SenToPCB"},
   };
@@ -89,6 +112,7 @@ namespace constants {
     {"sen_bas_stack_hist", kSpring-9},
     {"pcb_kap_stack_hist", kMagenta},
     {"bas_kap_stack_hist", kAzure},
+    {"bas_kap_sen_stack_hist", kAzure},
     {"sen_kap_stack_hist", kBlue },
     {"sen_pcb_stack_hist", kGreen + 3 },
   };
@@ -125,19 +149,26 @@ namespace constants {
     {"Kaptonminus150", R"(Kapton - 150 $\mu m$)"},
     {"Kaptonminus170", R"(Kapton - 170 $\mu m$)"},
     {"Kaptonminus75", R"(Kapton - 75 $\mu m$)"},
-    {"Kaptonplus75", R"(Nominal Kapton width + 75 $\mu m$)"},
-    {"Kaptonplus100", R"(Nominal Kapton width + 100 $\mu m$)"},
-    {"Kaptonplus125", R"(Nominal Kapton width + 125 $\mu m$)"},
     {"Kaptonplus150", R"(Nominal Kapton width + 150 $\mu m$)"},
-    {"Kaptonplus175", R"(Nominal Kapton width + 175 $\mu m$)"},
+    {"Kaptonplus160", R"(Nominal Kapton width + 160 $\mu m$)"},
+    {"Kaptonplus170", R"(Nominal Kapton width + 170 $\mu m$)"},
+    {"Kaptonplus180", R"(Nominal Kapton width + 180 $\mu m$)"},
+    {"Kaptonplus190", R"(Nominal Kapton width + 190 $\mu m$)"},
     {"Kaptonplus200", R"(Nominal Kapton width + 200 $\mu m$)"},
-    {"Kaptonplus225", R"(Nominal Kapton width + 225 $\mu m$)"},
+    {"Kaptonplus210", R"(Nominal Kapton width + 210 $\mu m$)"},
+    {"Kaptonplus220", R"(Nominal Kapton width + 220 $\mu m$)"},
+    {"Kaptonplus230", R"(Nominal Kapton width + 230 $\mu m$)"},
+    {"Kaptonplus240", R"(Nominal Kapton width + 240 $\mu m$)"},
+    {"Kaptonplus250", R"(Nominal Kapton width + 250 $\mu m$)"},
+    {"Kaptonplus260", R"(Nominal Kapton width + 260 $\mu m$)"},
+    {"Kaptonplus270", R"(Nominal Kapton width + 270 $\mu m$)"},
+    {"Kaptonplus280", R"(Nominal Kapton width + 280 $\mu m$)"},
+    {"Kaptonplus290", R"(Nominal Kapton width + 290 $\mu m$)"},
     {"Kaptonplus300", R"(Nominal Kapton width + 300 $\mu m$)"},
-    {"Kaptonplus400", R"(Nominal Kapton width + 400 $\mu m$)"},
-    {"senTokap000", R"(\\Incomplete coverage = 0 $\mu m$}})"},
-    {"senTokap100", R"(\\Incomplete coverage = 100 $\mu m$}})"},
-    {"senTokap150", R"(\\Incomplete coverage = 150 $\mu m$}})"},
-    {"senTokap185", R"(\\Incomplete coverage = 185 $\mu m$}})"},
+    {"senTokap000", R"(\\Incomplete coverage = 0 $\mu m$)"},
+    {"senTokap100", R"(\\Incomplete coverage = 100 $\mu m$)"},
+    {"senTokap150", R"(\\Incomplete coverage = 150 $\mu m$)"},
+    {"senTokap185", R"(\\Incomplete coverage = 185 $\mu m$)"},
     {"Nominal", "Nominal"},
     {"Gaussian", "Gaussian"},
     {"Flat", "Flat"},
@@ -172,6 +203,7 @@ namespace constants {
     {"BacksideBondY", "Backside Bond Y"},
     {"SenToBas", "Sen to Base"},
     {"BasToKapMax", "Max Base to Kap"},
+    {"BasToKapWSen", "Base to Kap with Sen"},
     {"BasToKap", "Base to Kap"},
     {"SenToPCB", "PCB to Sen"},
     {"PCBToBas", "Base to PCB"},
@@ -202,15 +234,22 @@ namespace constants {
     {"Kaptonminus150", R"(Kapton - 150 #mum)"},
     {"Kaptonminus170", R"(Kapton - 170 #mum)"},
     {"Kaptonminus75", R"(Kapton - 75 #mum)"},
-    {"Kaptonplus75", R"(Nominal Kapton width + 75 #mum)"},
-    {"Kaptonplus100", R"(Nominal Kapton width + 100 #mum)"},
-    {"Kaptonplus125", R"(Nominal Kapton width + 125 #mum)"},
     {"Kaptonplus150", R"(Nominal Kapton width + 150 #mum)"},
-    {"Kaptonplus175", R"(Nominal Kapton width + 175 #mum)"},
+    {"Kaptonplus160", R"(Nominal Kapton width + 160 #mum)"},
+    {"Kaptonplus170", R"(Nominal Kapton width + 170 #mum)"},
+    {"Kaptonplus180", R"(Nominal Kapton width + 180 #mum)"},
+    {"Kaptonplus190", R"(Nominal Kapton width + 190 #mum)"},
     {"Kaptonplus200", R"(Nominal Kapton width + 200 #mum)"},
-    {"Kaptonplus225", R"(Nominal Kapton width + 225 #mum)"},
+    {"Kaptonplus210", R"(Nominal Kapton width + 210 #mum)"},
+    {"Kaptonplus220", R"(Nominal Kapton width + 220 #mum)"},
+    {"Kaptonplus230", R"(Nominal Kapton width + 230 #mum)"},
+    {"Kaptonplus240", R"(Nominal Kapton width + 240 #mum)"},
+    {"Kaptonplus250", R"(Nominal Kapton width + 250 #mum)"},
+    {"Kaptonplus260", R"(Nominal Kapton width + 260 #mum)"},
+    {"Kaptonplus270", R"(Nominal Kapton width + 270 #mum)"},
+    {"Kaptonplus280", R"(Nominal Kapton width + 280 #mum)"},
+    {"Kaptonplus290", R"(Nominal Kapton width + 290 #mum)"},
     {"Kaptonplus300", R"(Nominal Kapton width + 300 #mum)"},
-    {"Kaptonplus400", R"(Nominal Kapton width + 400 #mum)"},
     {"senTokap000", R"(Incomplete coverage = 0 #mum)"},
     {"senTokap100", R"(Incomplete coverage = 100 #mum)"},
     {"senTokap150", R"(Incomplete coverage = 150 #mum)"},
