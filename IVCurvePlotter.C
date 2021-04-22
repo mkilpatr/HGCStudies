@@ -24,6 +24,11 @@ using namespace EstTools;
 
 vector<TString> hNames = {"First Cycle", "Second Cycle", "Third Cycle"};
 
+double strToDouble(string s){
+  std::string::size_type sz;
+  return std::stod(s,&sz);
+}
+
 json readFile(std::string FILENAME){
 //std::pair< std::pair<vector<TString>, vector<double> >, std::pair<vector<TString>, vector<double> > > readFile(std::string FILENAME){
   std::ifstream file(FILENAME);
@@ -48,16 +53,17 @@ json readFile(std::string FILENAME){
 
       int isEnd = ssin.rdbuf()->in_avail();
 
-      if(isEnd != 0) biasV = std::stod(arr[1],&sz);
+      if(isEnd != 0) biasV = strToDouble(arr[1]);
       if(biasV != prevVol || isEnd == 0){ 
-      	j[FILENAME][to_string(prevVol)] = {measV/nAvg, measC/nAvg};
+        if(isnan(measV/nAvg) || isnan(measC/nAvg)) cout << "Measured Current or Voltage was NULL!!!" << endl;
+        else j[FILENAME][to_string(prevVol)] = {measV/nAvg, measC/nAvg};
         measC = 0.;
         measV = 0.;
         nAvg  = 0.;
       }
       if(biasV == prevVol && isEnd != 0){
-        measC += std::stod(arr[2],&sz);
-        measV += std::stod(arr[3],&sz);
+        measC += strToDouble(arr[2]);
+        measV += strToDouble(arr[3]);
         nAvg++;
       }
       prevVol = biasV;
@@ -84,7 +90,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   std::vector<std::string> files = readFileTotal(indir);
   for(auto s : files) cout << s << endl;
   std::vector<double> val_up_total, val_down_total;
-  json j, jtot;
+  json j, jtot, j_orig;
   std::ofstream jout;
   jout.open(indir_ + "/" + suffix + ".json");
   for(unsigned i = 0; i != files.size(); i++){
@@ -99,21 +105,38 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   jout << jtot.dump(3);
   jout.close();
 
+  std::ifstream orig("module805Master.json");
+  orig >> j_orig;
+
   vector<TH1*> hTotal;
-  for (json::iterator unc = jtot.begin(); unc != jtot.end(); ++unc) {
+  for (json::iterator unc = j_orig.begin(); unc != j_orig.end(); ++unc) {
     TString type = TString(unc.key());
-    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (A)", 44, 0, 1100);
+    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 20, 0, 1000);
     cout << type << endl;
     TAxis *xaxis = hIV->GetXaxis();
-    for (json::iterator bin = jtot[unc.key()].begin(); bin != jtot[unc.key()].end(); ++bin) {
-      int binnum = xaxis->FindBin(jtot[unc.key()][bin.key()][0]);
-      hIV->SetBinContent(binnum, jtot[unc.key()][bin.key()][1]);
+    for (json::iterator bin = j_orig[unc.key()].begin(); bin != j_orig[unc.key()].end(); ++bin) {
+      int binnum = xaxis->FindBin(strToDouble(bin.key()));
+      hIV->SetBinContent(binnum, double(j_orig[unc.key()][bin.key()][1])*1000000);
       hIV->SetBinError(binnum, 0.);
     }
     hTotal.push_back(hIV);
   }
 
-  prepHists(hTotal, false, false, false, {kRed, kCyan, kMagenta, kAzure, kGreen});
+  cout << "Made it past master" << endl;
+  for (json::iterator unc = jtot.begin(); unc != jtot.end(); ++unc) {
+    TString type = TString(unc.key());
+    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 40, 0, 1000);
+    cout << type << endl;
+    TAxis *xaxis = hIV->GetXaxis();
+    for (json::iterator bin = jtot[unc.key()].begin(); bin != jtot[unc.key()].end(); ++bin) {
+      int binnum = xaxis->FindBin(strToDouble(bin.key()));
+      hIV->SetBinContent(binnum, double(jtot[unc.key()][bin.key()][1])*1000000);
+      hIV->SetBinError(binnum, 0.);
+    }
+    hTotal.push_back(hIV);
+  }
+
+  prepHists(hTotal, false, false, false, {kBlack, kRed-9, kAzure+6, kRed, kGreen, 606, kViolet+2});
 
   for(auto* h : hTotal){
     h->SetMarkerStyle(8);
@@ -123,6 +146,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   for(unsigned h = 0; h != hTotal.size(); h++){
     TString legName = hTotal[h]->GetName();//hNames[h];
     legName.ReplaceAll(indir_ + "/data_IVCurve_Neg30_", "");
+    legName.ReplaceAll("sec", "s ");
     legName.ReplaceAll(".txt", "");
     appendLegends(leg, {hTotal[h]}, {legName}, "P");
   }
@@ -134,7 +158,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   c->SetTitle(typeName);
   c->Print(indir_+"/"+typeName+".pdf");
 
-  c = drawCompMatt(hTotal, leg, 0.00000001, nullptr, "P", true);
+  c = drawCompMatt(hTotal, leg, 0.001, nullptr, "P", true);
   c->SetTitle(typeName + "_log");
   c->Print(indir_+"/"+typeName+"_log.pdf");
 
