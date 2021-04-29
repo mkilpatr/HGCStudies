@@ -43,7 +43,7 @@ pwd
 cd ${CMSSW}/src/EstToolsSUSY/HGCStudies
 echo $outdir
 
-sed -i -e "s/Gaussian_Kaptonminus0_senTokap185_midSensor/$bins/g" ModuleStudies.C
+sed -i -e "s/Gaussian_PCBplus000_Kaptonminus0_senTokap185_midSensor/$bins/g" ModuleStudies.C
 
 ulimit -s unlimited
 cd $location

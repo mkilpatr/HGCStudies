@@ -111,7 +111,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   vector<TH1*> hTotal;
   for (json::iterator unc = j_orig.begin(); unc != j_orig.end(); ++unc) {
     TString type = TString(unc.key());
-    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 20, 0, 1000);
+    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 22, 0, 1100);
     cout << type << endl;
     TAxis *xaxis = hIV->GetXaxis();
     for (json::iterator bin = j_orig[unc.key()].begin(); bin != j_orig[unc.key()].end(); ++bin) {
@@ -125,7 +125,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   cout << "Made it past master" << endl;
   for (json::iterator unc = jtot.begin(); unc != jtot.end(); ++unc) {
     TString type = TString(unc.key());
-    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 40, 0, 1000);
+    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 44, 0, 1100);
     cout << type << endl;
     TAxis *xaxis = hIV->GetXaxis();
     for (json::iterator bin = jtot[unc.key()].begin(); bin != jtot[unc.key()].end(); ++bin) {
@@ -150,7 +150,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
     legName.ReplaceAll(".txt", "");
     appendLegends(leg, {hTotal[h]}, {legName}, "P");
   }
-  setLegend(leg, 1, 0.2, 0.65, 0.94, 0.87);
+  setLegend(leg, 1, 0.2, 0.60, 0.94, 0.87);
   leg->SetTextSize(0.04);
   leg->SetY1NDC(leg->GetY2NDC() - 0.2);
   TCanvas* c = drawCompMatt(hTotal, leg, -1., nullptr, "P", true);
