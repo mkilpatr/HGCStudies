@@ -148,6 +148,8 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
     legName.ReplaceAll(indir_ + "/data_IVCurve_Neg30_", "");
     legName.ReplaceAll("sec", "s ");
     legName.ReplaceAll(".txt", "");
+    legName.ReplaceAll("_25Vper10s", "");
+    legName.ReplaceAll("_10thermalcycles", "10 Thermal Cycles");
     appendLegends(leg, {hTotal[h]}, {legName}, "P");
   }
   setLegend(leg, 1, 0.2, 0.60, 0.94, 0.87);

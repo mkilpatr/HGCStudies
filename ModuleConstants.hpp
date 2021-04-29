@@ -1,8 +1,8 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_28Apr21_fixCenter/";
-  const TString localDir = "ModuleTolerances_complete_300K_28Apr21_fixCenter_small";
+  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_29Apr21/";
+  const TString localDir = "ModuleTolerances_complete_300K_29Apr21_small";
   const bool debug = false;
   const TString whichOverlap = "bas_kap_stack_hist";
 
@@ -37,7 +37,6 @@ namespace constants {
   vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   //vector<TString> whichComp = {"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<TString> whichPlot = whichComp;//{"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
-  vector<TString> pcbOrder = {"PCBplus000", "PCBplus050", "PCBplus100", "PCBplus150"};
   vector<string> Dist = {
                "Gaussian_PCBplus000_Kaptonminus0_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonminus0_senTokap185_newSensor",
                "Gaussian_PCBplus000_Kaptonplus200_senTokap185_midSensor","Gaussian_PCBplus000_Kaptonplus100_senTokap185_newSensor",
