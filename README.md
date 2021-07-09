@@ -1,4 +1,6 @@
-## HGCStudies
+### HGCStudies
+
+##Hexacontroller Test Stand
 
 #First Test stand IP: 128.111.19.46
 #Second Test stand IP: 128.111.19.45
@@ -11,7 +13,7 @@ make distclean
 make trophy
 ```
 #start processes for running
-#Locally run Fast Control:
+Locally run Fast Control:
 ```
 source env.sh
 cd /root/hexactrl-sw
@@ -25,7 +27,7 @@ python3 zmq_server.py &
 ```
 
 #Need two separate terminals logged into hgcal pc
-#In first terminal:
+In first terminal:
 ```
 cd hexactrl-sw/
 source env.sh
