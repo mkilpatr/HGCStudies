@@ -14,6 +14,11 @@ make distclean
 make trophy
 ```
 start processes for running
+```
+python3 address_table/buildXML.py
+python3 webserver.py & # not necessary if you plan to run within the terminal
+```
+
 Locally run Fast Control:
 ```
 source env.sh
