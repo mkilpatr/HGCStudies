@@ -9,6 +9,7 @@ Second Test stand IP: 128.111.19.45
 Load FW to FPGA:
 ```
 ssh root@baryon.physics.ucsb.edu # login from hgcal PC
+newData # needed to set the date of the PC to something that's not 1970
 cd mylittledt
 make distclean
 make trophy
