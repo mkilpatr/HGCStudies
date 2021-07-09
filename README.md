@@ -3,6 +3,7 @@
 Hexacontroller Test Stand
 
 First Test stand IP: 128.111.19.46
+
 Second Test stand IP: 128.111.19.45
 
 Load FW to FPGA:
@@ -27,6 +28,7 @@ python3 zmq_server.py &
 ```
 
 Need two separate terminals logged into hgcal pc
+
 In first terminal:
 ```
 cd hexactrl-sw/
