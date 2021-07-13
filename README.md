@@ -23,8 +23,8 @@ python3 webserver.py & # not necessary if you plan to run within the terminal
 
 ### Locally run Fast Control ###
 ```
-source env.sh
 cd /root/hexactrl-sw
+source env.sh
 ./bin/zmq-server &
 ```
 
@@ -36,14 +36,14 @@ python3 zmq_server.py &
 
 ### In first terminal ###
 ```
-cd hexactrl-sw/
+cd /root/hexactrl-sw/hexactrl-sw/
 source env.sh
 ./bin/zmq-client
 ```
 
 ### In second terminal ###
 ```
-cd hexactrl-sw/hexactrl-script/
+cd /root/hexactrl-sw/hexactrl-script/
 source env.sh
 python3 full_test.py -d <outputdir> -o /data/HexaController/data/ -i <test stand IP> -f configs/<initHD.yaml or initLD.yaml depending on module>
 ```
