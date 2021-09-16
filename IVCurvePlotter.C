@@ -35,21 +35,14 @@ map<TString, string> nLeg {
   {"Jun0121_30thermalcycles", "30 Cycles"},
   {"Jun0221_40thermalcycles", "40 Cycles"},
   {"Jun0321_50thermalcycles", "50 Cycles"},
-  {"1Cycle_07Jul21", "1 Cycle"},
-  {"1Cycle_11Aug21", "1 Cycle"},
-  {"2Cycle_08Jul21", "2 Cycles"},
-  {"2Cycle_16Aug21", "2 Cycles"},
-  {"2Cycle_16Aug21_attempt2", "2 Cycles"},
-  {"3Cycle_09Jul21", "3 Cycles"},
-  {"4Cycle_13Jul21", "4 Cycles"},
-  {"5Cycle_14Jul21", "5 Cycles"},
-  {"10Cycle_19Jul21", "10 Cycles, Bad IV"},
-  {"11Cycle_10Aug21_Fix", "11 Cycles, Fix HV Connection"},
-  {"1Cycle_24Aug21", "1 Cycle"},
-  {"1_Cycle_24Aug21_attempt2", "1 Cycle v2"},
-  {"2Cycles_25Aug21", "2 Cycle"},
-  {"2Cycles_25Aug21_attempt2", "2 Cycle v2"},
-  {"2Cycles_25Aug21_attempt3", "2 Cycle v3"},
+  {"1Cycle", "1 Cycle"},
+  {"2Cycles", "2 Cycles"},
+  {"3Cycles", "3 Cycles"},
+  {"4Cycles", "4 Cycles"},
+  {"5Cycles", "5 Cycles"},
+  {"10Cycles", "10 Cycles, Bad IV"},
+  {"11Cycles", "11 Cycles, Fix HV Connection"},
+  {"1_Cycle", "1 Cycle"},
 };
 
 map<TString, Color_t> nColor {
@@ -65,21 +58,14 @@ map<TString, Color_t> nColor {
   {"Jun0121_30thermalcycles",  kYellow-9},
   {"Jun0221_40thermalcycles", kGreen+3},
   {"Jun0321_50thermalcycles", kOrange},
-  {"1Cycle_07Jul21", kRed-9},
-  {"2Cycle_08Jul21", kAzure+6},
-  {"2Cycle_16Aug21", kAzure+6},
-  {"2Cycle_16Aug21_attempt2", kAzure+6},
-  {"3Cycle_09Jul21", kRed},
-  {"4Cycle_13Jul21", kGreen},
-  {"5Cycle_14Jul21", 606},
-  {"1Cycle_11Aug21", kRed},
-  {"10Cycle_19Jul21", COLOR_MAP["color_comp1"]},
-  {"11Cycle_10Aug21_Fix", COLOR_MAP["color_comp2"]},
-  {"1Cycle_24Aug21", kRed -9},
-  {"1_Cycle_24Aug21_attempt2", kAzure+6},
-  {"2Cycles_25Aug21", kRed},
-  {"2Cycles_25Aug21_attempt2", kGreen},
-  {"2Cycles_25Aug21_attempt3", 606},
+  {"1Cycle", kRed-9},
+  {"2Cycles", kAzure+6},
+  {"3Cycles", kSpring-8},
+  {"4Cycles", kGreen},
+  {"5Cycles", 606},
+  {"10Cycles", COLOR_MAP["color_comp1"]},
+  {"11Cycles", COLOR_MAP["color_comp2"]},
+  {"1_Cycle", kAzure+6},
 };
 
 double strToDouble(string s){
@@ -142,12 +128,17 @@ std::vector<std::string> readFileTotal(const string& pattern){
     return files;
 }
 
-void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805", TString label = "Module X"){
+inline bool exists (const std::string& name) {
+    ifstream f(name.c_str());
+    return f.good();
+}
+
+void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805", TString label = "Module X"){
   gROOT->SetBatch(1);
 
+  TString suffix = TString(suffix_);
   std::string indir = indir_ + "/*";
   std::vector<std::string> files = readFileTotal(indir);
-  for(auto s : files) cout << s << endl;
   std::vector<double> val_up_total, val_down_total;
   json j, jtot, j_orig;
   std::ofstream jout;
@@ -165,35 +156,35 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
   jout << jtot.dump(3);
   jout.close();
 
-  std::ifstream orig(suffix + "Master.json");
-  orig >> j_orig;
-
   vector<Color_t> colors;
   vector<TH1*> hTotal;
-  for (json::iterator unc = j_orig.begin(); unc != j_orig.end(); ++unc) {
-    TString type = TString(unc.key());
-    TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 32, 0, 800);
-    cout << type << endl;
-    TAxis *xaxis = hIV->GetXaxis();
-    for (json::iterator bin = j_orig[unc.key()].begin(); bin != j_orig[unc.key()].end(); ++bin) {
-      int binnum = xaxis->FindBin(strToDouble(bin.key()));
-      hIV->SetBinContent(binnum, double(j_orig[unc.key()][bin.key()][1])*1000000);
-      hIV->SetBinError(binnum, 0.);
+  if(exists(suffix_ + "Master.json")){
+    std::ifstream orig(suffix + "Master.json");
+    orig >> j_orig;
+
+    for (json::iterator unc = j_orig.begin(); unc != j_orig.end(); ++unc) {
+      TString type = TString(unc.key());
+      TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 32, 0, 800);
+      cout << type << endl;
+      TAxis *xaxis = hIV->GetXaxis();
+      for (json::iterator bin = j_orig[unc.key()].begin(); bin != j_orig[unc.key()].end(); ++bin) {
+        int binnum = xaxis->FindBin(strToDouble(bin.key()));
+        hIV->SetBinContent(binnum, double(j_orig[unc.key()][bin.key()][1])*1000000);
+        hIV->SetBinError(binnum, 0.);
+      }
+      hTotal.push_back(hIV);
+      TString colName = hIV->GetName();
+      colName.ReplaceAll(indir_ + "/data_IVCurve_Neg30_", "");
+      colName.ReplaceAll("sec", "s ");
+      colName.ReplaceAll(".txt", "");
+      colName.ReplaceAll("_25Vper10s", "");
+      colors.push_back(nColor[colName]);
     }
-    hTotal.push_back(hIV);
-    TString colName = hIV->GetName();
-    colName.ReplaceAll(indir_ + "/data_IVCurve_Neg30_25Vper10sec_", "");
-    colName.ReplaceAll("sec", "s ");
-    colName.ReplaceAll(".txt", "");
-    colName.ReplaceAll("_25Vper10s", "");
-    cout << colName << endl;
-    colors.push_back(nColor[colName]);
   }
 
   for (json::iterator unc = jtot.begin(); unc != jtot.end(); ++unc) {
     TString type = TString(unc.key());
     TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 32, 0, 800);
-    cout << type << endl;
     TAxis *xaxis = hIV->GetXaxis();
     for (json::iterator bin = jtot[unc.key()].begin(); bin != jtot[unc.key()].end(); ++bin) {
       int binnum = xaxis->FindBin(strToDouble(bin.key()));
@@ -201,16 +192,14 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
       hIV->SetBinError(binnum, 0.);
     }
     hTotal.push_back(hIV);
-    TString colName = hIV->GetName();
-    colName.ReplaceAll(indir_ + "/data_", "");
-    colName.ReplaceAll("IVCurve_Neg30_25Vper10sec_", "");
-    colName.ReplaceAll("IVCurve_30C_", "");
-    colName.ReplaceAll("sec", "s ");
-    colName.ReplaceAll(".txt", "");
-    colName.ReplaceAll("_25Vper10s", "");
-    cout << colName << endl;
-    colors.push_back(nColor[colName]);
 
+    vector<TString> vec = splitString(hIV->GetName(), "_");
+    TString colName = "";
+    for (unsigned i=0; i<vec.size(); ++i){
+      if(vec.at(i).Contains("Cycle")) colName = TString(vec.at(i));
+    }
+
+    colors.push_back(nColor[colName]);
   }
 
   prepHists(hTotal, false, false, false, colors);
@@ -221,21 +210,30 @@ void IVCurvePlotter(std::string indir_ = "testDir", TString suffix = "module805"
 
   auto leg = prepLegends({}, {""}, "l");
   for(unsigned h = 0; h != hTotal.size(); h++){
-    TString legName = hTotal[h]->GetName();
-    cout << legName << endl;
-    legName.ReplaceAll(indir_ + "/data_", "");
-    legName.ReplaceAll("IVCurve_Neg30_25Vper10sec_", "");
-    legName.ReplaceAll("IVCurve_30C_", "");
-    legName.ReplaceAll("sec", "s ");
-    legName.ReplaceAll(".txt", "");
-    legName.ReplaceAll("_25Vper10s", "");
-    legName.ReplaceAll(legName, nLeg[legName]);
-    appendLegends(leg, {hTotal[h]}, {legName}, "P");
+    cout << hTotal[h]->GetName() << endl;
+    vector<TString> vec = splitString(hTotal[h]->GetName(), "_");
+    TString rlt = "";
+    bool isfirst = true;
+    for (unsigned i=0; i<vec.size(); ++i){
+      TString buff = "";
+      if(!vec.at(i).Contains("data") && !vec.at(i).Contains("IVCurve") && !vec.at(i).Contains("Neg30")){
+        if(vec.at(i).Contains("Cycle")) buff = nLeg[vec.at(i)];
+        else buff = vec.at(i);
+        if (isfirst){
+          rlt = buff;
+          isfirst = false;
+        }else{
+          rlt = rlt + ", " + buff;
+        }
+      }
+    }
+    rlt.ReplaceAll(".txt", "");
+    appendLegends(leg, {hTotal[h]}, {rlt}, "P");
   }
 
   std::function<void(TCanvas*)> plotextra = [&](TCanvas *c){ c->cd(); drawTLatexNDC(label, 0.2, 0.94, 0.04); };
 
-  setLegend(leg, 1, 0.2, 0.57, 0.94, 0.90);
+  setLegend(leg, 1, 0.2, 0.65, 0.94, 0.90);
   leg->SetTextSize(0.04);
   leg->SetY1NDC(leg->GetY2NDC() - 0.2);
   TCanvas* c = drawCompMatt(hTotal, leg, -1., &plotextra, "P", true);

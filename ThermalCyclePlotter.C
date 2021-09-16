@@ -41,9 +41,20 @@ double strToDouble(string s){
   return std::stod(s,&sz);
 }
 
+
 vector<string> ModuleHeight = {"Corner", "Edges", "Middle", "Point", "Center"};
 //vector<string> ModuleCycle_805 = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
-vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles"};
+vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles"};
+vector<int> PadCenter = {88};
+vector<int> PadCorner = {1, 8, 18, 95, 111, 189, 197, 191, 190, 96, 81, 9};
+vector<int> PadEdge = {3, 5, 39, 65, 140, 168, 195, 193, 169, 141, 52, 29};
+vector<int> PadMiddle = {22, 24, 37, 78, 123, 151, 164, 160, 159, 115, 68, 42};
+vector<int> PadPoint = {58, 76, 121, 133, 117, 71};
+vector<int> ChanCenter = {46};
+vector<int> ChanCorner = {33, 6, 61, 33, 32, 5, 57, 29, 31, 11, 70, 35};
+vector<int> ChanEdge   = {21, 14, 67, 29, 21, 16, 68, 66, 23, 21, 67, 29};
+vector<int> ChanMiddle = {25, 10, 55, 71, 10, 1, 49, 60, 32, 4, 57, 59};
+vector<int> ChanPoint  = {42, 52, 37, 45, 2, 52, 46};
 
 json readFile(std::string FILENAME){
   std::ifstream file(FILENAME);
@@ -51,6 +62,7 @@ json readFile(std::string FILENAME){
   json j;
   ifstream infile(FILENAME);
   int h = 0, c = 0, i = 0;
+  int cen = 0, cor = 0, edg = 0, mid = 0, pnt = 0;
   while (infile){
     string s;
     if (!getline( infile, s )) break;
@@ -61,7 +73,42 @@ json readFile(std::string FILENAME){
       if (!getline( ss, s, ',' )) break;
       if (s == "") continue;
       double height = strToDouble(s);
-      j[FILENAME][ModuleHeight[h]][ModuleCycle[c]].push_back(height);
+      j[FILENAME]["Channeltype"].push_back(0);
+      j[FILENAME]["Location"].push_back(ModuleHeight[h]);
+      j[FILENAME]["Cycle"].push_back(ModuleCycle[c]);
+      j[FILENAME]["Height"].push_back(height);
+      if(i == 0){
+        j[FILENAME]["Pad"].push_back(PadCorner[cor]);
+        j[FILENAME]["Channel"].push_back(ChanCorner[cor]);
+        j[FILENAME]["Which"].push_back(cor);
+        cor++;
+      } else if(i == 1 || i == 2) {
+        j[FILENAME]["Pad"].push_back(PadEdge[edg]);
+        j[FILENAME]["Channel"].push_back(ChanEdge[edg]);
+        j[FILENAME]["Which"].push_back(edg);
+        edg++;
+      } else if(i == 3){
+        j[FILENAME]["Pad"].push_back(PadCorner[cor]);
+        j[FILENAME]["Channel"].push_back(ChanCorner[cor]);
+        j[FILENAME]["Which"].push_back(cor);
+        cor++;
+      } else if(i == 4 || i == 5){
+        j[FILENAME]["Pad"].push_back(PadMiddle[mid]);
+        j[FILENAME]["Channel"].push_back(ChanMiddle[mid]);
+        j[FILENAME]["Which"].push_back(mid);
+         mid++;
+      } else if(i == 6){
+        j[FILENAME]["Pad"].push_back(PadPoint[pnt]);
+        j[FILENAME]["Channel"].push_back(ChanPoint[pnt]);
+        j[FILENAME]["Which"].push_back(pnt);
+         pnt++;
+      } else if(i == 7){
+        j[FILENAME]["Pad"].push_back(PadCenter[cen]);
+        j[FILENAME]["Channel"].push_back(ChanCenter[cen]);
+        j[FILENAME]["Which"].push_back(cen);
+         cen++;
+      }
+      
     }
 
     i++;
@@ -69,7 +116,7 @@ json readFile(std::string FILENAME){
     if(i == 3) h--;
     if(i == 4) h+=2;
     if(i == 6 || i == 7) h++;
-    if(i == 8) {c++; i = 0; h = 0;}
+    if(i == 8) {c++; i = 0; h = 0; cen = 0; cor = 0; edg = 0; mid = 0; pnt = 0;}
   }
   return j;
 }
@@ -94,7 +141,7 @@ int getIndex(vector<string> v, string K){
     return -1;
 }
 
-void ThermalCyclePlotter(std::string indir_ = "testDir", string suffix = "module805", TString label = "Module X"){
+void ThermalCyclePlotter(std::string indir_ = "testDir", string filename = "", string suffix = "module805", TString label = "Module X"){
   gROOT->SetBatch(1);
 
   TString suffix_ = TString(suffix);
@@ -107,7 +154,7 @@ void ThermalCyclePlotter(std::string indir_ = "testDir", string suffix = "module
   jout.open(indir_ + "/" + suffix_ + ".json");
   for(unsigned i = 0; i != files.size(); i++){
     TString name = TString(files[i]);
-    if(!name.Contains("csv")) continue;
+    if(!name.Contains(filename)) continue;
     j = readFile(files[i]);
     for (json::iterator it = j.begin(); it != j.end(); ++it) {
       jtot[suffix] = it.value();
@@ -120,6 +167,7 @@ void ThermalCyclePlotter(std::string indir_ = "testDir", string suffix = "module
   vector<TGraph*> hTotal;
   vector<TString> Modules;
   vector<double> x = {0, 1, 2, 3, 4, 5, 10, 10.5, 11, 15};
+  //j[FILENAME][ModuleHeight[h]][ModuleCycle[c]]["Channel"][Center[cen]] = height;
   for (json::iterator loc = jtot[suffix].begin(); loc != jtot[suffix].end(); ++loc) {
     TString location = TString(loc.key());
     int n = 120, m = 12;
@@ -162,7 +210,7 @@ void ThermalCyclePlotter(std::string indir_ = "testDir", string suffix = "module
   setLegend(leg, 1, 0.2, 0.57, 0.94, 0.90);
   leg->SetTextSize(0.04);
   leg->SetY1NDC(leg->GetY2NDC() - 0.2);
-  TCanvas* c = drawCompMatt(hTotal, leg, -1., &plotextra, "AP", true);
+  TCanvas* c = drawCompMatt(hTotal, leg, -1., &plotextra, "AP", true, 999., -1., ";Thermal Cycles;#Delta(H_i - H_0) (#mum)");
   TString typeName = "ThermalHeights_"+suffix_;
   c->SetTitle(typeName);
   c->Print(indir_+"/"+typeName+".pdf");
