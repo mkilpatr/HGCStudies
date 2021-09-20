@@ -44,17 +44,18 @@ double strToDouble(string s){
 
 vector<string> ModuleHeight = {"Corner", "Edges", "Middle", "Point", "Center"};
 //vector<string> ModuleCycle_805 = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
-vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles"};
+vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
+//vector<string> ModuleCycle_812 = {"OGP", "0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles"};
 vector<int> PadCenter = {88};
-vector<int> PadCorner = {1, 8, 18, 95, 111, 189, 197, 191, 190, 96, 81, 9};
-vector<int> PadEdge = {3, 5, 39, 65, 140, 168, 195, 193, 169, 141, 52, 29};
-vector<int> PadMiddle = {22, 24, 37, 78, 123, 151, 164, 160, 159, 115, 68, 42};
-vector<int> PadPoint = {58, 76, 121, 133, 117, 71};
+vector<int> PadCorner = {1, 18, 111, 197, 190, 81, 8, 95, 189, 191, 96, 9};
+vector<int> PadEdge = {3, 39, 140, 195, 169, 52, 5, 65, 168, 193, 141, 29};
+vector<int> PadMiddle = {22, 49, 124, 175, 158, 68, 24, 78, 152, 173, 129, 42};
+vector<int> PadPoint = {45, 76, 122, 148, 131, 71};
 vector<int> ChanCenter = {46};
-vector<int> ChanCorner = {33, 6, 61, 33, 32, 5, 57, 29, 31, 11, 70, 35};
-vector<int> ChanEdge   = {21, 14, 67, 29, 21, 16, 68, 66, 23, 21, 67, 29};
-vector<int> ChanMiddle = {25, 10, 55, 71, 10, 1, 49, 60, 32, 4, 57, 59};
-vector<int> ChanPoint  = {42, 52, 37, 45, 2, 52, 46};
+vector<int> ChanCorner = {33, 61, 32, 57, 31, 70, 6, 33, 5, 29, 11, 35};
+vector<int> ChanEdge   = {21, 67, 21, 68, 23, 67, 14, 29, 16, 66, 21, 29};
+vector<int> ChanMiddle = {25, 57, 25, 50, 34, 57, 10, 71, 9, 59, 15, 59};
+vector<int> ChanPoint  = {36, 52, 40, 48, 36, 52};
 
 json readFile(std::string FILENAME){
   std::ifstream file(FILENAME);
