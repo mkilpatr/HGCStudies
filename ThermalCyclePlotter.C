@@ -44,8 +44,8 @@ double strToDouble(string s){
 
 vector<string> ModuleHeight = {"Corner", "Edges", "Middle", "Point", "Center"};
 //vector<string> ModuleCycle_805 = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
-vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
-//vector<string> ModuleCycle_812 = {"OGP", "0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles"};
+//vector<string> ModuleCycle = {"0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "4 Cycles", "5 Cycles", "10 Cycles", "After Fix", "11 Cycles", "15 Cycles"};
+vector<string> ModuleCycle = {"OGP", "0 Cycles", "1 Cycle", "2 Cycles", "3 Cycles", "Remount", "4 Cycles", "5 Cycles", "6 Cycles"};
 vector<int> PadCenter = {88};
 vector<int> PadCorner = {1, 18, 111, 197, 190, 81, 8, 95, 189, 191, 96, 9};
 vector<int> PadEdge = {3, 39, 140, 195, 169, 52, 5, 65, 168, 193, 141, 29};
@@ -163,63 +163,4 @@ void ThermalCyclePlotter(std::string indir_ = "testDir", string filename = "", s
   }
   jout << jtot.dump(3);
   jout.close();
-
-  vector<Color_t> colors;
-  vector<TGraph*> hTotal;
-  vector<TString> Modules;
-  vector<double> x = {0, 1, 2, 3, 4, 5, 10, 10.5, 11, 15};
-  //j[FILENAME][ModuleHeight[h]][ModuleCycle[c]]["Channel"][Center[cen]] = height;
-  for (json::iterator loc = jtot[suffix].begin(); loc != jtot[suffix].end(); ++loc) {
-    TString location = TString(loc.key());
-    int n = 120, m = 12;
-    if(location == "Point") {n = 60; m = 6;}
-    else if(location == "Center") {n = 10; m = 1;}
-    TVectorD xf(n);
-    TVectorD yf(n);
-    int i = 0;
-    for (json::iterator cycle = jtot[suffix][loc.key()].begin(); cycle != jtot[suffix][loc.key()].end(); ++cycle) {
-      TString cycles = TString(cycle.key());
-      if(cycles == "0 Cycles") continue;
-      int bin = getIndex(ModuleCycle, cycle.key());
-      for(int ibin = 0; ibin != m; ibin++){
-        double y = double(jtot[suffix][loc.key()][cycle.key()][ibin]) - double(jtot[suffix][loc.key()]["0 Cycles"][ibin]);
-        xf[i] = x[bin];
-        yf[i] = y*1000;
-        i++;
-      }
-    }
-    TGraph* gr = new TGraph(xf, yf);
-    gr->SetTitle(";Thermal Cycles;#Delta(H_i - H_0) (#mum)");
-    hTotal.push_back(gr);
-    colors.push_back(nColor[location]);
-    Modules.push_back(location);
-  }
-
-  prepHists(hTotal, colors);
-
-  for(auto* h : hTotal){
-    h->SetMarkerStyle(8);
-  }
-
-  auto leg = prepLegends({}, {""}, "l");
-  for(unsigned h = 0; h != hTotal.size(); h++){
-    appendLegends(leg, {hTotal[h]}, {Modules[h]}, "P");
-  }
-
-  std::function<void(TCanvas*)> plotextra = [&](TCanvas *c){ c->cd(); drawTLatexNDC(label, 0.2, 0.94, 0.04); };
-
-  setLegend(leg, 1, 0.2, 0.57, 0.94, 0.90);
-  leg->SetTextSize(0.04);
-  leg->SetY1NDC(leg->GetY2NDC() - 0.2);
-  TCanvas* c = drawCompMatt(hTotal, leg, -1., &plotextra, "AP", true, 999., -1., ";Thermal Cycles;#Delta(H_i - H_0) (#mum)");
-  TString typeName = "ThermalHeights_"+suffix_;
-  c->SetTitle(typeName);
-  c->Print(indir_+"/"+typeName+".pdf");
-
-  TFile *outFile = new TFile(indir_+"/"+typeName+".root", "RECREATE");
-  for(unsigned h = 0; h != hTotal.size(); h++){
-    hTotal[h]->Write();
-  }
-  outFile->Close();
-
 }

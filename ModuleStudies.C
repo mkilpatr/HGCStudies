@@ -29,10 +29,10 @@ void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
-  //module2DTolerances();
+  module2DTolerances();
   //module1DTolerances();
-  moduleFitTolerances();
-  RedoLatexTable("Full");
+  //moduleFitTolerances();
+  //RedoLatexTable("Semi");
 }
 
 template <typename T,typename U>                                                   

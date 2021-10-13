@@ -40,6 +40,7 @@ map<TString, string> nLeg {
   {"3Cycles", "3 Cycles"},
   {"4Cycles", "4 Cycles"},
   {"5Cycles", "5 Cycles"},
+  {"6Cycles", "6 Cycles"},
   {"10Cycles", "10 Cycles, Bad IV"},
   {"11Cycles", "11 Cycles, Fix HV Connection"},
   {"1_Cycle", "1 Cycle"},
@@ -63,6 +64,7 @@ map<TString, Color_t> nColor {
   {"3Cycles", kSpring-8},
   {"4Cycles", kGreen},
   {"5Cycles", 606},
+  {"6Cycles", COLOR_MAP["color_comp1"]},
   {"10Cycles", COLOR_MAP["color_comp1"]},
   {"11Cycles", COLOR_MAP["color_comp2"]},
   {"1_Cycle", kAzure+6},
@@ -78,7 +80,7 @@ json readFile(std::string FILENAME){
   string arr[4];
   int i = 0;
   json j;
-  double biasV = 0., measV = 0., measC = 0.;
+  double biasV = 0., measV = 0., measC = 0., measR = 0.;
   double nAvg = 0.;
   if (file.is_open()) {
     std::string line;
@@ -97,10 +99,12 @@ json readFile(std::string FILENAME){
 
       if(isEnd != 0) biasV = strToDouble(arr[1]);
       if((biasV != prevVol && nAvg > 0) || isEnd == 0){ 
-        if(isnan(measV/nAvg) || isnan(measC/nAvg)){
+        if((measV/nAvg)/(measC/nAvg) < 0) measR = 0;
+        else measR = (measV/measC);
+        if(isnan(measV/nAvg) || isnan(measC/nAvg) || isnan(measR)){
           cout << "Measured Current or Voltage was NULL in file " << FILENAME << "!!!" << endl;
-          cout << "(MeasV, MeasC, nAvg) = (" << measV << ", " << measC << ", " << nAvg << ")" << endl;
-        } else j[FILENAME][to_string(prevVol)] = {measV/nAvg, measC/nAvg};
+          cout << "(MeasV, MeasC, measR, nAvg) = (" << measV << ", " << measC << ", " << measR << ", " << nAvg << ")" << endl;
+        } else j[FILENAME][to_string(prevVol)] = {measV/nAvg, measC/nAvg, measR};
         measC = 0.;
         measV = 0.;
         nAvg  = 0.;
@@ -157,7 +161,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
   jout.close();
 
   vector<Color_t> colors;
-  vector<TH1*> hTotal;
+  vector<TH1*> hTotal, hRTotal;
   if(exists(suffix_ + "Master.json")){
     std::ifstream orig(suffix + "Master.json");
     orig >> j_orig;
@@ -165,14 +169,18 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
     for (json::iterator unc = j_orig.begin(); unc != j_orig.end(); ++unc) {
       TString type = TString(unc.key());
       TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 32, 0, 800);
+      TH1D* hRes = new TH1D(type, ";Voltage (V);Resistance (k#Omega)", 32, 0, 800);
       cout << type << endl;
       TAxis *xaxis = hIV->GetXaxis();
       for (json::iterator bin = j_orig[unc.key()].begin(); bin != j_orig[unc.key()].end(); ++bin) {
         int binnum = xaxis->FindBin(strToDouble(bin.key()));
         hIV->SetBinContent(binnum, double(j_orig[unc.key()][bin.key()][1])*1000000);
         hIV->SetBinError(binnum, 0.);
+        hRes->SetBinContent(binnum, double(j_orig[unc.key()][bin.key()][2])/1000);
+        hRes->SetBinError(binnum, 0.);
       }
       hTotal.push_back(hIV);
+      hRTotal.push_back(hRes);
       TString colName = hIV->GetName();
       colName.ReplaceAll(indir_ + "/data_IVCurve_Neg30_", "");
       colName.ReplaceAll("sec", "s ");
@@ -185,13 +193,17 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
   for (json::iterator unc = jtot.begin(); unc != jtot.end(); ++unc) {
     TString type = TString(unc.key());
     TH1D* hIV = new TH1D(type, ";Voltage (V);Current (#muA)", 32, 0, 800);
+    TH1D* hRes = new TH1D(type + "Resistance", ";Voltage (V);Resistance (k#Omega)", 32, 0, 800);
     TAxis *xaxis = hIV->GetXaxis();
     for (json::iterator bin = jtot[unc.key()].begin(); bin != jtot[unc.key()].end(); ++bin) {
       int binnum = xaxis->FindBin(strToDouble(bin.key()));
       hIV->SetBinContent(binnum, double(jtot[unc.key()][bin.key()][1])*1000000);
       hIV->SetBinError(binnum, 0.);
+      hRes->SetBinContent(binnum, double(jtot[unc.key()][bin.key()][2])/1000);
+      hRes->SetBinError(binnum, 0.);
     }
     hTotal.push_back(hIV);
+    hRTotal.push_back(hRes);
 
     vector<TString> vec = splitString(hIV->GetName(), "_");
     TString colName = "";
@@ -203,10 +215,10 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
   }
 
   prepHists(hTotal, false, false, false, colors);
+  prepHists(hRTotal, false, false, false, colors);
 
-  for(auto* h : hTotal){
-    h->SetMarkerStyle(8);
-  }
+  for(auto* h : hTotal) h->SetMarkerStyle(8);
+  for(auto* h : hRTotal) h->SetMarkerStyle(8);
 
   auto leg = prepLegends({}, {""}, "l");
   for(unsigned h = 0; h != hTotal.size(); h++){
@@ -232,23 +244,32 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
   }
 
   std::function<void(TCanvas*)> plotextra = [&](TCanvas *c){ c->cd(); drawTLatexNDC(label, 0.2, 0.94, 0.04); };
-
+  //Legend information
   setLegend(leg, 1, 0.2, 0.65, 0.94, 0.90);
   leg->SetTextSize(0.04);
   leg->SetY1NDC(leg->GetY2NDC() - 0.2);
+
+  //Create plots for Current vs Voltage
   TCanvas* c = drawCompMatt(hTotal, leg, -1., &plotextra, "P", true);
   TString typeName = "IVCurves_"+suffix;
   c->SetTitle(typeName);
   c->Print(indir_+"/"+typeName+".pdf");
-
   c = drawCompMatt(hTotal, leg, 0.001, nullptr, "P", true);
   c->SetTitle(typeName + "_log");
   c->Print(indir_+"/"+typeName+"_log.pdf");
 
+  //Create plots for Resistance vs Voltage
+  c = drawCompMatt(hRTotal, leg, -1., &plotextra, "P", true);
+  typeName = "Resistance_"+suffix;
+  c->SetTitle(typeName);
+  c->Print(indir_+"/"+typeName+".pdf");
+  c = drawCompMatt(hRTotal, leg, 0.001, nullptr, "P", true);
+  c->SetTitle(typeName + "_log");
+  c->Print(indir_+"/"+typeName+"_log.pdf");
+
   TFile *outFile = new TFile(indir_+"/"+typeName+".root", "RECREATE");
-  for(unsigned h = 0; h != hTotal.size(); h++){
-    hTotal[h]->Write();
-  }
+  for(auto* h : hTotal) h->Write();
+  for(auto* h : hRTotal) h->Write();
   outFile->Close();
 
 }
