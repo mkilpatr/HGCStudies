@@ -228,7 +228,7 @@ void IVCurvePlotter(std::string indir_ = "testDir", string suffix_ = "module805"
     bool isfirst = true;
     for (unsigned i=0; i<vec.size(); ++i){
       TString buff = "";
-      if(!vec.at(i).Contains("data") && !vec.at(i).Contains("IVCurve") && !vec.at(i).Contains("Neg30")){
+      if(!vec.at(i).Contains("data") && !vec.at(i).Contains("IVCurve") && !vec.at(i).Contains("Neg30") && !vec.at(i).Contains("21")){
         if(vec.at(i).Contains("Cycle")) buff = nLeg[vec.at(i)];
         else buff = vec.at(i);
         if (isfirst){

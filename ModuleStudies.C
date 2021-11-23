@@ -18,7 +18,7 @@ using namespace std;
 using namespace EstTools;
 using json = nlohmann::json;
 
-TString baseDir = "Gaussian_PCBplus000_Kaptonminus0_senTokap185_midSensor";
+TString baseDir = "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor";
 void print2DPlots(TH2Poly *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb", double width = 0.2);
 void print2DPlots(TH2D *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb");
 void module2DTolerances();
@@ -29,10 +29,10 @@ void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
-  module2DTolerances();
-  //module1DTolerances();
-  //moduleFitTolerances();
-  //RedoLatexTable("Semi");
+  //module2DTolerances();
+  module1DTolerances();
+  moduleFitTolerances();
+  RedoLatexTable("Semi");
 }
 
 template <typename T,typename U>                                                   
@@ -843,21 +843,36 @@ void AddLineNomHex(double width, TString geo = "Full"){
 }
 
 void ExtendPlots(TString geo){
-      //int nbins = 650;
-      //double axis = width_new/2 + nbins*step + 0.1;
-      if(geo == "Semi"){
-        constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 0.5;
-        constants::nbins = 700;
-      } else if(geo == "Half"){
-        constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 1.5;
-        constants::nbins = 800;
-      } else if(geo == "Three"){
-        constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 1.4;
-        constants::nbins = 700;
-      }
+  //int nbins = 650;
+  //double axis = width_new/2 + nbins*step + 0.1;
+  if(geo == "Semi"){
+    constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 0.5;
+    constants::nbins = 700;
+  } else if(geo == "Half"){
+    constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 1.5;
+    constants::nbins = 800;
+  } else if(geo == "Three"){
+    constants::axis  = constants::width_new/2 + constants::nbins*constants::step + 0.1 + 1.4;
+    constants::nbins = 700;
+  }
 }
 
-void ExtendWidths(TString par){
+void WhichGeometry(TString geo){
+  if(geo == "Semi"){
+    constants::pcb_w = GetAToWidth(constants::pcb_a_const_semi);
+    constants::sensor_w = GetAToWidth(constants::sensor_a_const_semi);
+    constants::kapton_w = GetAToWidth(constants::kapton_a_const_semi);
+    constants::baseplate_w = GetAToWidth(constants::baseplate_a_const_semi);
+  } else {
+    constants::pcb_w = constants::pcb_w_const;
+    constants::sensor_w = constants::sensor_w_const;
+    constants::kapton_w = constants::kapton_w_const;
+    constants::baseplate_w = constants::baseplate_w_const;
+  }
+}
+
+void ExtendWidths(TString par, TString geo){
+      WhichGeometry(geo);
       vector<TString> ext = splitString(par, "_");
       bool ispcb = false, iskap = false, issen = false, issenkap = false;
       for(int iS = 0; iS != (signed)ext.size(); iS++){
@@ -867,7 +882,6 @@ void ExtendWidths(TString par){
         }
 
         if(par.Contains("PCB")){
-          constants::pcb_w = constants::pcb_w_const;
           TString buffer = par;
           TString pcb_new_shift_str = buffer.ReplaceAll("PCBplus", "");
           pcb_new_shift_str.ReplaceAll("PCBminus", "");
@@ -876,10 +890,9 @@ void ExtendWidths(TString par){
           if(par.Contains("plus"))  constants::pcb_w += pcb_new_shift;
           if(par.Contains("minus")) constants::pcb_w -= pcb_new_shift;
           ispcb = true;
-        } else if(!ispcb) constants::pcb_w = constants::pcb_w_const;
+        }
 
         if(par.Contains("Kapton")){
-          constants::kapton_w = constants::kapton_w_const;
           TString buffer = par;
           TString kapton_new_shift_str = buffer.ReplaceAll("Kaptonplus", "");
           kapton_new_shift_str.ReplaceAll("Kaptonminus", "");
@@ -888,7 +901,7 @@ void ExtendWidths(TString par){
           if(par.Contains("plus"))  constants::kapton_w += kapton_new_shift;
           if(par.Contains("minus")) constants::kapton_w -= kapton_new_shift;
           iskap = true;
-        } else if(!iskap) constants::kapton_w = constants::kapton_w_const;
+        }
 
         if(par.Contains("senTokap")){
           TString buffer = par;
@@ -961,7 +974,7 @@ void module2DTolerances(){
       }
 
       ExtendPlots(geo);
-      ExtendWidths(type);
+      ExtendWidths(type, geo);
 
       vector<double> howBad = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
       vector<double> pcb, kapton, baseplate, sensor, pcb_bond, kapton_bond, sensor_bond, pcb_backside, kapton_backside, sensor_backside, pcb_backside_x, kapton_backside_x, sensor_backside_x;
@@ -1452,7 +1465,7 @@ void moduleFitTolerances(){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
 
-      ExtendWidths(type);
+      ExtendWidths(type, geo);
 
       file->cd();
       vector<TH1D*> AllHists = GetHistograms1D(file, geo, type);
@@ -1482,7 +1495,7 @@ void moduleFitTolerances(){
           TH1D* hRebin = rebinAxis(h, stackType.Contains("pcb_bas_stack_hist") || stackType.Contains("sen_pcb_stack_hist"));
           if(swi.Contains("_integrate")) overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
           else overlap_1D_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
-          if(type.Contains("Kaptonplus200")){
+          if(type.Contains("Kaptonplus150")){
             overlap_1D_integrate_minus_split.push_back(prefix+"_" + constants::compMap[stackType]+ "_" + group);
             overlap_1D_integrate_minus_kind.push_back(constants::compMap[stackType]);
           }

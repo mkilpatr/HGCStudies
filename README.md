@@ -50,12 +50,10 @@ python3 full_test.py -d <outputdir> -o /data/HexaController/data/ -i <test stand
 
 ## Module Tolerances ##
 
-Methods to run the module tolerances on Condor. This produces only the 2D plots.
+Methods to run the module tolerances on Condor. This produces only the 2D plots. To run the first command you need to only use the first function that is meant to run on the cluster. The second and third commands are used to merge the files from eos and then do final plotting and formatting.
 
 ```
 ./process.py -p . -m ModuleStudies.C -o ModuleTolerances_complete_300K_29Apr21 -l . -b diffTolerances.conf
-python mergeJSONFiles.py -d ModuleTolerances_complete_300K_29Apr21
-root -l
-.L ModuleStudies.C+
-ModuleStudies()
+python mergeJSONFiles.py -d ModuleTolerances_complete_300K_29Apr21 -g <geometry>
+root -l -b -q ModuleStudies.C+
 ```
