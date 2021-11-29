@@ -11,6 +11,7 @@
 #include <functional>
 #include <numeric>
 #include <glob.h>
+#include <regex>
 #include "TVectorD.h" 
 #include "TGraph.h"
 
@@ -122,6 +123,75 @@ json readFile(std::string FILENAME){
   return j;
 }
 
+vector<int> indexCorner = {3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20};
+vector<int> indexEdge = {4, 7, 10, 13, 16, 19};
+vector<int> indexPoint = {21, 22, 23, 24, 25, 26};
+vector<int> OGPPadEdge = {4, 51, 155, 194, 156, 40};
+vector<int> OGPChanEdge   = {22, 64, 22, 71, 26, 64};
+
+
+bool isPoint(int i, vector<int>& vec){
+  return std::find(vec.begin(), vec.end(), i) != vec.end();
+}
+
+
+json readFileOGP(std::string FILENAME){
+  std::ifstream file(FILENAME);
+  string arr[7];
+  json j;
+  ifstream infile(FILENAME);
+  int h = 0, c = 0, i = 3;
+  int cen = 0, cor = 0, edg = 0, mid = 0, pnt = 0;
+  double height = 0.;
+  while (infile){
+    string s;
+    if (!getline( infile, s )) break;
+    istringstream ss( s );
+    if(!TString(s).Contains("Point")) continue;
+    bool isActual = false;
+
+    regex regexp("[0-9].[0-9]+");
+    smatch m;
+    regex_search(s, m, regexp);
+    height = strToDouble(m[0]);
+
+    if(m.size()){
+      j[FILENAME]["Channeltype"].push_back(0);
+      j[FILENAME]["Location"].push_back(ModuleHeight[h]);
+      j[FILENAME]["Cycle"].push_back(ModuleCycle[c]);
+      j[FILENAME]["Height"].push_back(height);
+      if(isPoint(i, indexCorner)){
+        j[FILENAME]["Pad"].push_back(PadCorner[cor]);
+        j[FILENAME]["Channel"].push_back(ChanCorner[cor]);
+        j[FILENAME]["Which"].push_back(cor);
+        cor++;
+      } else if(isPoint(i, indexEdge)) {
+        j[FILENAME]["Pad"].push_back(OGPPadEdge[edg]);
+        j[FILENAME]["Channel"].push_back(OGPChanEdge[edg]);
+        j[FILENAME]["Which"].push_back(edg);
+        edg++;
+      } else if(isPoint(i, indexPoint)){
+        j[FILENAME]["Pad"].push_back(PadPoint[pnt]);
+        j[FILENAME]["Channel"].push_back(ChanPoint[pnt]);
+        j[FILENAME]["Which"].push_back(pnt);
+         pnt++;
+      } else if(i == 27){
+        j[FILENAME]["Pad"].push_back(PadCenter[cen]);
+        j[FILENAME]["Channel"].push_back(ChanCenter[cen]);
+        j[FILENAME]["Which"].push_back(cen);
+         cen++;
+      }
+    }
+
+    i++;
+    if(isPoint(i, indexCorner)) h = 0;
+    else if(isPoint(i, indexEdge)) h = 1;
+    else if(isPoint(i, indexPoint)) h = 3;
+    else if(i == 27) h = 4;
+  }
+  return j;
+}
+
 std::vector<std::string> readFileTotal(const string& pattern){
     glob_t glob_result;
     glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
@@ -133,16 +203,7 @@ std::vector<std::string> readFileTotal(const string& pattern){
     return files;
 }
 
-int getIndex(vector<string> v, string K){
-
-    for(int i = 0; i != v.size(); i++){
-      if(v[i] == K) return i;
-    }
-
-    return -1;
-}
-
-void ThermalCyclePlotter(std::string indir_ = "testDir", string filename = "", string suffix = "module805", TString label = "Module X"){
+void ThermalCyclePlotter(std::string indir_ = "testDir", string filename = "", string suffix = "module805", TString label = "Module X", bool isDeformation = false){
   gROOT->SetBatch(1);
 
   TString suffix_ = TString(suffix);
@@ -156,7 +217,7 @@ void ThermalCyclePlotter(std::string indir_ = "testDir", string filename = "", s
   for(unsigned i = 0; i != files.size(); i++){
     TString name = TString(files[i]);
     if(!name.Contains(filename)) continue;
-    j = readFile(files[i]);
+    j = !isDeformation ? readFile(files[i]) : readFileOGP(files[i]);
     for (json::iterator it = j.begin(); it != j.end(); ++it) {
       jtot[suffix] = it.value();
     }
