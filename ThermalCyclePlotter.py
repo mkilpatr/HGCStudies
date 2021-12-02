@@ -32,8 +32,8 @@ ChanPoint  = [36, 52, 40, 48, 36, 52]
 
 def readFile(FILENAME):
     file = open(args.baseDir + "/" + FILENAME, 'r')
-    label = FILENAME.replace(".txt", "")
-    j = {label: []}
+    label = FILENAME.replace(".csv", "")
+    j = {label: {"Channeltype": [], "Location": [], "Cycle": [], "Height": [], "Pad": [], "Channel": [], "Which": []}}
     h = c = i = 0
     cen = cor = edg = mid = pnt = 0
     while (True):
@@ -147,10 +147,11 @@ def readFileOGP(FILENAME):
   return j
 
 for d in Dist:
-    print(d)
     if os.path.isdir(args.baseDir + "/" + d): continue
-    fout = open(args.baseDir + "/" + d.replace("txt", "json"), 'w')
-    if "txt" not in d: continue
-    j = readFileOGP(d) if args.type == "Deformation" else readFile(d)
+    if "txt" in d or "csv" in d: 
+        print(d)
+        fout = open(args.baseDir + "/" + d.replace("txt", "json").replace("csv", "json"), 'w')
+        j = readFileOGP(d) if args.type == "Deformation" else readFile(d)
 
-    fout.write(json.dumps(j, sort_keys=False, indent=2))
+        if args.type == "Deformation": fout.write(json.dumps(j, sort_keys=False, indent=1))
+        else:                         fout.write(json.dumps(j, sort_keys=False))
