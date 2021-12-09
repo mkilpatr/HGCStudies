@@ -1,8 +1,8 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_22Nov21/";
-  const TString localDir = "ModuleTolerances_complete_300K_22Nov21_small";
+  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_09Dec21/";
+  const TString localDir = "ModuleTolerances_complete_300K_09Dec21_small";
   const bool debug = false;
   const TString whichOverlap = "bas_kap_stack_hist";
 
@@ -12,6 +12,7 @@ namespace constants {
   const double pcb_a_const_semi = 96.7799, sensor_a_const_semi = pcb_a_const_semi + (sensor_w_const - pcb_w_const), kapton_a_const_semi = pcb_a_const_semi + (kapton_w_const - pcb_w_const), baseplate_a_const_semi = pcb_a_const_semi + (baseplate_w_const - pcb_w_const);
 
   double baseplate_center = 3.05, baseplate_err = 0.05;
+  double baseplate_centerX = 0., baseplate_centerY = 0.;
   double baseplate_pinhole_err = 0.050, baseplate_pinhole_theta = 2*TMath::Pi();
   double cassette_err = 0.050; 
   double pcb_w = pcb_w_const, sensor_w = sensor_w_const, kapton_w = kapton_w_const, baseplate_w = baseplate_w_const;
@@ -35,28 +36,17 @@ namespace constants {
   double axis = width_new/2 + nbins*step + 0.1;
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
-  vector<string> Geometry = {"Semi"};
+  vector<string> Geometry = {"Full"};
   vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   //vector<TString> whichComp = {"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<TString> whichPlot = whichComp;//{"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<string> Dist = {
                "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus025_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus025_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus050_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus050_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus075_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus075_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus100_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus125_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus125_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus150_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus150_senTokap185_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus030_CenterYplus100_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus030_CenterYplus100_newSensor",
                            };
   
   const vector<TString> Order = {
                "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus025_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus025_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus050_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus050_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus075_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus075_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus100_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus100_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus125_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus125_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus150_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus150_senTokap185_newSensor",
                            };
   
   map<TString, string> nameMap {

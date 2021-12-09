@@ -1,7 +1,6 @@
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include "../utils/Estimator.hh"
 #include "../utils/HistGetter.hh"
-#include "../SUSYNano19/SRParameters.hh"
 #include "../utils/json.hpp"
 #include "ModuleConstants.hpp"
 
@@ -29,10 +28,10 @@ void RedoLatexTable(TString geo = "Full");
 #endif
 
 void ModuleStudies(){
-  //module2DTolerances();
-  module1DTolerances();
-  moduleFitTolerances();
-  RedoLatexTable("Semi");
+  module2DTolerances();
+  //module1DTolerances();
+  //moduleFitTolerances();
+  //RedoLatexTable("Semi");
 }
 
 template <typename T,typename U>                                                   
@@ -868,17 +867,40 @@ void WhichGeometry(TString geo){
     constants::sensor_w = constants::sensor_w_const;
     constants::kapton_w = constants::kapton_w_const;
     constants::baseplate_w = constants::baseplate_w_const;
+    constants::baseplate_centerX = 0.;
+    constants::baseplate_centerY = 0.;
+    constants::senToKap_min = 0.0; 
+    constants::base_kap_min = 0.100;
   }
 }
 
 void ExtendWidths(TString par, TString geo){
       WhichGeometry(geo);
       vector<TString> ext = splitString(par, "_");
-      bool ispcb = false, iskap = false, issen = false, issenkap = false;
       for(int iS = 0; iS != (signed)ext.size(); iS++){
         TString par = ext[iS];
         if(par.Contains("otherCenter")){
           constants::baseplate_err = 0.029;
+        }
+
+        if(par.Contains("CenterX")){
+          TString buffer = par;
+          TString baseplate_err_X_str = buffer.ReplaceAll("CenterXplus", "");
+          baseplate_err_X_str.ReplaceAll("CenterXminus", "");
+          float baseplate_err_X = baseplate_err_X_str.Atof()/1000;
+         
+          if(par.Contains("plus"))  constants::baseplate_centerX += baseplate_err_X;
+          if(par.Contains("minus")) constants::baseplate_centerX -= baseplate_err_X;
+        }
+
+        if(par.Contains("CenterY")){
+          TString buffer = par;
+          TString baseplate_err_Y_str = buffer.ReplaceAll("CenterYplus", "");
+          baseplate_err_Y_str.ReplaceAll("CenterYminus", "");
+          float baseplate_err_Y = baseplate_err_Y_str.Atof()/1000;
+         
+          if(par.Contains("plus"))  constants::baseplate_centerY += baseplate_err_Y;
+          if(par.Contains("minus")) constants::baseplate_centerY -= baseplate_err_Y;
         }
 
         if(par.Contains("PCB")){
@@ -889,7 +911,6 @@ void ExtendWidths(TString par, TString geo){
          
           if(par.Contains("plus"))  constants::pcb_w += pcb_new_shift;
           if(par.Contains("minus")) constants::pcb_w -= pcb_new_shift;
-          ispcb = true;
         }
 
         if(par.Contains("Kapton")){
@@ -900,7 +921,6 @@ void ExtendWidths(TString par, TString geo){
          
           if(par.Contains("plus"))  constants::kapton_w += kapton_new_shift;
           if(par.Contains("minus")) constants::kapton_w -= kapton_new_shift;
-          iskap = true;
         }
 
         if(par.Contains("senTokap")){
@@ -910,8 +930,7 @@ void ExtendWidths(TString par, TString geo){
          
           constants::senToKap_min = kapton_new_shift;
           constants::base_kap_min = kapton_new_shift;
-          issenkap = true;
-        } else if(!issenkap) {constants::senToKap_min = 0.0; constants::base_kap_min = 0.100;}
+        }
 
         if(par.Contains("Sensor")){
           if(par.Contains("new")){ 
@@ -924,10 +943,6 @@ void ExtendWidths(TString par, TString geo){
             constants::sensor_shift_x = 0.200;
             constants::sensor_shift_y = 0.050;
           }
-          issen = true;
-        } else if(!issen){
-          constants::sensor_shift_x = 0.200;
-          constants::sensor_shift_y = 0.050;
         }  
       }
 }
@@ -1015,7 +1030,7 @@ void module2DTolerances(){
           cout << "pcb: " << constants::pcb_w*kapton_mean << " +/- " << constants::pcb_w_err*kapton_sigma << endl;
           cout << "kapton: " << constants::kapton_w*kapton_mean << " +/- " << constants::kapton_w_err*kapton_sigma << endl;
           cout << "sensor: " << constants::sensor_w*kapton_mean << " +/- " << constants::sensor_w_err*kapton_sigma << endl;
-          cout << "center: " << constants::baseplate_err << endl;
+          cout << "center: (X, Y) = (" << constants::baseplate_centerX << ", " << constants::baseplate_centerY << ") +/- "<< constants::baseplate_err << endl;
           cout << "PCB shift: " << constants::PcbToBas_shift_r<< endl;
           cout << "Sensor shift: " << constants::sensor_shift_x << endl;
 	}
@@ -1045,7 +1060,7 @@ void module2DTolerances(){
           kapton_backside_x.push_back(GetWidthToA(kapton.at(iS)) - (2*7.2393));
         }//get three random sides
         //Get shift in x and y, soon add theta also
-        pair<double, double> SenToBas_shift = GetCartesian("", getRandomValue(0, constants::baseplate_err, type), getRandomValue(0, constants::PcbToBas_shift_theta, type), 0., 0.);
+        pair<double, double> SenToBas_shift = GetCartesian("", getRandomValue(0, constants::baseplate_err, type), getRandomValue(0, constants::PcbToBas_shift_theta, type), constants::baseplate_centerX, constants::baseplate_centerY);
         pair<double, double> BasToCas_shift = GetCartesian("", getRandomValue(0, constants::cassette_err, type), getRandomValue(0, constants::PcbToBas_shift_theta, type), 0., 0.);
         vector<pair<double, double> > AdjBasToCas_shift = {};
         for(int i = 0; i != 6; i++) AdjBasToCas_shift.push_back(GetCartesian("", getRandomValue(0, constants::cassette_err, type), getRandomValue(0, constants::PcbToBas_shift_theta, type), 0., 0.));
@@ -1053,12 +1068,6 @@ void module2DTolerances(){
         SenToKap_x_shift = getRandomValue(0, constants::sensor_shift_x, type);
         SenToKap_y_shift = getRandomValue(0, constants::sensor_shift_y, type);
 
-//pair<double, double> FillAllSides(TString geo, double max, TH2Poly* hc, TH1D* hMin, TH1D* hMax, double nom, 
-//		vector<double> rand, double shift_x, double shift_y, 
-//		double width_new, pair < double, double > cen_base,
-//		vector<double> comp = {}, double min = 0.,
-//		vector<double> comp2 = {}, 
-//                pair<double, double> backside_x_err = make_pair(0.0, 0.0), pair<double, double> backside_y_err = make_pair(0.0, 0.0), TString coordAxis = "", double comp_shift_x = 0., double comp_shift_y = 0., double comp2_shift_x = 0., double comp2_shift_y = 0.){
         //Component values
         vector<pair<double, double>> isNegative = {};
         FillAllSides(geo, double(constants::max), components["bas"], nullptr, nullptr, constants::baseValue_total, baseplate, SenToBas_shift.first,     SenToBas_shift.second,      constants::width_new, center["new"]);
@@ -1245,7 +1254,7 @@ std::vector<TH1D*> GetHistograms1D(TFile *f, TString geo, TString type, TString 
 }
 
 void module1DTolerances(){
-  lumistr = "";
+  TString lumistr = "";
   SetStyle();
   TDR_EXTRA_LABEL_ = "";
   TDR_EXTRA_LABEL_2 = "";
@@ -1439,7 +1448,7 @@ TH1D* rebinAxis(TH1D* h, bool flip = false){
 }
 
 void moduleFitTolerances(){
-  lumistr = "";
+  TString lumistr = "";
   SetStyle();
   TDR_EXTRA_LABEL_ = "";
   TDR_EXTRA_LABEL_2 = "";
