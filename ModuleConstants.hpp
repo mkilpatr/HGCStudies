@@ -1,8 +1,9 @@
 // ModuleConstants.hpp
 namespace constants {
   TString outputDir = "";
-  const TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/ModuleTolerances_complete_300K_09Dec21/";
-  const TString localDir = "ModuleTolerances_complete_300K_09Dec21_small";
+  //TString eosDir = "root://cmseos.fnal.gov//eos/uscms/store/user/mkilpatr/13TeV/";
+  TString eosDir = "/eos/uscms/store/user/mkilpatr/13TeV/";
+  TString localDir = "";
   const bool debug = false;
   const TString whichOverlap = "bas_kap_stack_hist";
 
@@ -35,18 +36,31 @@ namespace constants {
   double width_backY = 4.0;
   double axis = width_new/2 + nbins*step + 0.1;
 
+  int nPeaks = 6;
+  //     if(geo == "Five" || geo == "Semi") nPeaks = 3;
+  //else if(geo == "Half" || geo == "Three") nPeaks = 2;
+
+  //TString whichGroup = "Kaptonplus"; //group by different Kapton widths
+  //TString whichGroup = "PCBplus"; //group by different PCB widths
+  TString whichGroup = "Center"; //group by different center XY locations
+
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
   vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   //vector<TString> whichComp = {"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<TString> whichPlot = whichComp;//{"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<string> Dist = {
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus030_CenterYplus100_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus030_CenterYplus100_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  				 "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor",
                            };
   
   const vector<TString> Order = {
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  				 "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor",
                            };
   
   map<TString, string> nameMap {
@@ -121,6 +135,11 @@ namespace constants {
     {"KaptonMultiDist", ""},
     {"TotalBadModules", ""},
     {"Sensor", ""},
+    {"CenterXplus100", R"(center X $= +100 \mu m$)"},
+    {"CenterXplus150", R"(center X $= +150 \mu m$)"},
+    {"CenterYplus030", R"(center Y $= +30 \mu m$)"},
+    {"CenterYplus050", R"(center Y $= +50 \mu m$)"},
+    {"CenterYplus070", R"(center Y $= +70 \mu m$)"},
     {"otherCenter", R"(center $= + 29 \mu m$)"},
     {"PCBplus000", R"(Nominal Hexaboard width)"},
     {"PCBminus25", R"(PCB - 25 $\mu m$)"},
@@ -168,10 +187,10 @@ namespace constants {
     {"Kaptonplus300", R"(Nominal Kapton width + 300 $\mu m$)"},
     {"Kaptonplus400", R"(Nominal Kapton width + 400 $\mu m$)"},
     {"Kaptonplus500", R"(Nominal Kapton width + 500 $\mu m$)"},
-    {"senTokap000", R"(\\Incomplete coverage = 0 $\mu m$)"},
-    {"senTokap100", R"(\\Incomplete coverage = 100 $\mu m$)"},
-    {"senTokap150", R"(\\Incomplete coverage = 150 $\mu m$)"},
-    {"senTokap185", R"(\\Incomplete coverage = 185 $\mu m$)"},
+    {"senTokap000", R"(}{Incomplete coverage = 0 $\mu m$)"},
+    {"senTokap100", R"(}{Incomplete coverage = 100 $\mu m$)"},
+    {"senTokap150", R"(}{Incomplete coverage = 150 $\mu m$)"},
+    {"senTokap185", R"(}{Incomplete coverage = 185 $\mu m$)"},
     {"Nominal", "Nominal"},
     {"Gaussian", "Gaussian"},
     {"Flat", "Flat"},
@@ -180,8 +199,8 @@ namespace constants {
     {"newSensor", R"([50 $\mu m$])"},
     {"midSensor", R"([100 $\mu m$])"},
     {"oldSensor", R"([200 $\mu m$])"},
-    {"newSplitSensor", R"( & [50 $\mu m$])"},
-    {"midSplitSensor", R"( & [100 $\mu m$])"},
+    {"newSplitSensor", R"(}} & [50 $\mu m$])"},
+    {"midSplitSensor", R"(}} & [100 $\mu m$])"},
     {"oldSplitSensor", R"(}} & [200 $\mu m$])"},
     {"min", ""},
     {"max", ""},
@@ -191,6 +210,9 @@ namespace constants {
     {"Peak1", "Peak 1"},
     {"Peak2", "Peak 2"},
     {"Peak3", "Peak 3"},
+    {"Peak4", "Peak 4"},
+    {"Peak5", "Peak 5"},
+    {"Peak6", "Peak 6"},
   };
   
   const std::map<TString, TString> plotMap{
@@ -212,7 +234,12 @@ namespace constants {
     {"PCBToBas", "Base to PCB"},
     {"PCBToKap", "Kap to PCB"},
     {"SenToKap", "Kap to Sen"},
-    {"otherCenter", R"(center $= + 29 #mum)"},
+    {"CenterXplus100", R"(center X = +100 #mum)"},
+    {"CenterXplus150", R"(center X = +150 #mum)"},
+    {"CenterYplus030", R"(center Y = +30 #mum)"},
+    {"CenterYplus050", R"(center Y = +50 #mum)"},
+    {"CenterYplus070", R"(center Y = +70 #mum)"},
+    {"otherCenter", R"(center = + 29 #mum)"},
     {"PCBplus000", R"(Nominal Hexaboard width)"},
     {"PCBminus25", R"(PCB - 25 #mum)"},
     {"PCBplus25", R"(Nominal Hexaboard width + 25 #mum)"},
@@ -279,6 +306,9 @@ namespace constants {
     {"Peak1", ""},
     {"Peak2", ""},
     {"Peak3", ""},
+    {"Peak4", ""},
+    {"Peak5", ""},
+    {"Peak6", ""},
   };
 
 
