@@ -57,10 +57,10 @@ namespace constants {
                            };
   
   const vector<TString> Order = {
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  				 "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor",
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_newSensor",                              "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor",  				 
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor","Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor","Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  
+               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor","Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  
                            };
   
   map<TString, string> nameMap {
@@ -187,10 +187,10 @@ namespace constants {
     {"Kaptonplus300", R"(Nominal Kapton width + 300 $\mu m$)"},
     {"Kaptonplus400", R"(Nominal Kapton width + 400 $\mu m$)"},
     {"Kaptonplus500", R"(Nominal Kapton width + 500 $\mu m$)"},
-    {"senTokap000", R"(}{Incomplete coverage = 0 $\mu m$)"},
-    {"senTokap100", R"(}{Incomplete coverage = 100 $\mu m$)"},
-    {"senTokap150", R"(}{Incomplete coverage = 150 $\mu m$)"},
-    {"senTokap185", R"(}{Incomplete coverage = 185 $\mu m$)"},
+    {"senTokap000", R"(\\ Incomplete coverage = 0 $\mu m$)"},
+    {"senTokap100", R"(\\ Incomplete coverage = 100 $\mu m$)"},
+    {"senTokap150", R"(\\ Incomplete coverage = 150 $\mu m$)"},
+    {"senTokap185", R"(\\ Incomplete coverage = 185 $\mu m$)"},
     {"Nominal", "Nominal"},
     {"Gaussian", "Gaussian"},
     {"Flat", "Flat"},
@@ -200,7 +200,7 @@ namespace constants {
     {"midSensor", R"([100 $\mu m$])"},
     {"oldSensor", R"([200 $\mu m$])"},
     {"newSplitSensor", R"(}} & [50 $\mu m$])"},
-    {"midSplitSensor", R"(}} & [100 $\mu m$])"},
+    {"midSplitSensor", R"( & [100 $\mu m$])"},
     {"oldSplitSensor", R"(}} & [200 $\mu m$])"},
     {"min", ""},
     {"max", ""},

@@ -24,7 +24,6 @@ void print2DPlots(TH2D *hc, TString geometry, TString BinLatex = "", TString nam
 void module2DTolerances();
 void module1DTolerances();
 void moduleFitTolerances();
-void printToleranceTableLatex(json jtot, TString outputfile="/tmp/yields.tex");
 void RedoLatexTable(TString geo = "Full");
 #endif
 
@@ -65,9 +64,7 @@ TString groupString(TString name, TString remove, TString splitBy = "_", bool fl
   return rlt;
 }
 
-void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
-  ofstream outfile(outputfile);
-  Quantity::printStyle = Quantity::LATEX;
+void printLatexHeader(ofstream& outfile){
   outfile << R"(\documentclass[12pt,notitlepage]{revtex4-1})" << endl;
   outfile << R"(\usepackage{amsmath,mathrsfs})" << endl;
   outfile << R"(\usepackage{graphicx})" << endl;
@@ -89,13 +86,20 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   outfile << R"(\def\arraystretch{0.5})" << endl;
   outfile << R"(\usepackage[margin=1cm]{geometry})" << endl;
   outfile << R"(\begin{document})" << endl;
+}
+
+void printBadComponentsTableLatex(json jtot, json jbad, TString outputfile){
+  ofstream outfile(outputfile);
+  Quantity::printStyle = Quantity::LATEX;
+  printLatexHeader(outfile);
 
   assert(jtot);
   assert(jbad);
 
   outfile << R"(\newpage)" << endl;
   outfile << R"(\begin{center})" << endl;
-  outfile << R"(\begin{longtable}{| c | c | c | c | c | c |})" << endl;
+  outfile << R"(\resizebox*{1.0\textwidth}{!}{)" << endl;
+  outfile << R"(\begin{tabular}{| c | c | c | c | c | c |})" << endl;
   outfile << R"(\hline )" << endl;
 
   //key for value type
@@ -105,30 +109,45 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
     for (json::iterator comp = jbad["Worst"]["Bad Components"].begin(); comp != jbad["Worst"]["Bad Components"].end(); ++comp) {
       if(!TString(comp.key()).Contains(constants::Order[i])) continue;
       if(TString(comp.key()).Contains("Nominal")) continue;
-      TString multi = "";
+      TString multi = R"( \multirow{2}{*}{\shortstack{)";
       TString buff = TString(comp.key());
       buff.ReplaceAll("Sensor", "SplitSensor");
       buff.ReplaceAll("Gaussian_", "");
       if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
   
       if(constants::debug) cout << comp.key() << " " << buff << endl;
-      multi = R"( \multirow{2}{*}{\shortstack{)";
-          //if(buff.Contains("mid")) multi = R"( \multirow{2}{*}{\shortstack{)";
+      if(buff.Contains("mid")){ 
+        buff = groupString(buff, "Sensor", "_", true);
+        multi = "";
+      }
       outfile << multi << translateString(buff, constants::latexMap, "_", ", ") << " & \t " 
 	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Sensor"])) << " & \t " 
     	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Kapton"])) << " & \t "
     	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["Baseplate"])) << " & \t "
     	<< round(float(jbad["Worst"]["Bad Components"][comp.key()]["PCB"])) << R"( \\)" << endl;
+      if(buff.Contains("mid")) outfile << R"(\hline)" << endl;
     }//for comparison
   }//for Order
-  outfile << R"(\end{longtable})" << endl;
+  outfile << R"(\hline)" << endl;
+  outfile << R"(\end{tabular}})" << endl;
   outfile << R"(\end{center})" << endl;
+  outfile << R"(\end{document})" << endl;
+  outfile.close();
+}//for country!
+
+void printBadOverlapsTableLatex(json jtot, json jbad, TString outputfile){
+  ofstream outfile(outputfile);
+  Quantity::printStyle = Quantity::LATEX;
+  printLatexHeader(outfile);
+
+  assert(jtot);
+  assert(jbad);
 
   //For total Bad Overlaps
   outfile << R"(\newpage)" << endl;
   outfile << R"(\begin{center})" << endl;
   outfile << R"(\resizebox*{1.0\textwidth}{!}{)" << endl;
-  outfile << R"(\begin{longtable}{| c | c | c | c | c | c | c | c | c |})" << endl;
+  outfile << R"(\begin{tabular}{| c | c | c | c | c | c | c | c | c |})" << endl;
   outfile << R"(\hline )" << endl;
 
   //key for value type
@@ -140,14 +159,17 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
     for (json::iterator comp = jbad["Worst"]["Bad Overlaps"].begin(); comp != jbad["Worst"]["Bad Overlaps"].end(); ++comp) {
       if(!TString(comp.key()).Contains(constants::Order[i])) continue;
       if(TString(comp.key()).Contains("Nominal")) continue;
-      TString multi = "";
+      TString multi = R"( \multirow{2}{*}{\shortstack{)";
       TString buff = TString(comp.key());
       buff.ReplaceAll("Sensor", "SplitSensor");
       buff.ReplaceAll("Gaussian_", "");
       if(outputfile.Contains("Full")) buff.ReplaceAll("_Peak1", "");
   
       if(constants::debug) cout << comp.key() << " " << buff << endl;
-      multi = R"( \multirow{2}{*}{\shortstack{)";
+      if(buff.Contains("mid")){ 
+        buff = groupString(buff, "Sensor", "_", true);
+        multi = "";
+      }
       outfile << multi << translateString(buff, constants::latexMap, "_", ", "); 
       for(int i = 0; i != (signed)constants::whichPlot.size(); i++){ 
         if(constants::debug) cout << constants::nameMap[constants::whichPlot[i]] << endl;
@@ -155,11 +177,26 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
         if(constants::whichPlot[i].Contains("stack_hist")) outfile << " & \t " << round(float(jbad["Worst"]["Bad Overlaps"][comp.key()][constants::nameMap[constants::whichPlot[i]]]));
       }
       outfile << R"( \\)" << endl;
+      if(buff.Contains("mid")) outfile << R"(\hline)" << endl;
 
     }//for comparison
   }//for Order
-  outfile << R"(\end{longtable})" << endl;
+  outfile << R"(\hline)" << endl;
+  outfile << R"(\end{tabular}})" << endl;
   outfile << R"(\end{center})" << endl;
+
+  outfile << R"(\end{document})" << endl;
+
+  outfile.close();
+}//for country!
+
+void printFitTableLatex(json jtot, json jbad, TString outputfile){
+  ofstream outfile(outputfile);
+  Quantity::printStyle = Quantity::LATEX;
+  printLatexHeader(outfile);
+
+  assert(jtot);
+  assert(jbad);
 
   for (json::iterator type = jtot.begin(); type != jtot.end(); ++type){
     if(type.key() == "BinNum") continue;
@@ -182,12 +219,15 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
           if(!TString(comp.key()).Contains(constants::Order[i])) continue;
           if(TString(comp.key()).Contains("Nominal")) continue;
           if(TString(comp.key()).Contains("_max") || TString(comp.key()).Contains("_min")) continue;
-          TString multi = "";
+          TString multi = R"( \multirow{2}{*}{\shortstack{)";
           TString buff = TString(comp.key());
           buff.ReplaceAll("Sensor", "SplitSensor").ReplaceAll("Gaussian_", "");
 
           if(constants::debug) cout << type.key() << " " << comp.key() << " " << dist.key() << endl;
-          multi = R"( \multirow{2}{*}{\shortstack{)";
+          if(buff.Contains("mid")){ 
+            buff = groupString(buff, "Sensor", "_", true);
+            multi = "";
+          }
           outfile << multi << translateString(buff, constants::latexMap, "_", ", "); 
           outfile << " & \t " << Round(jtot["Fit"][dist.key()][comp.key() + "_Nominal"][0]) 
                   << " & \t " << Round(jtot["Fit"][dist.key()][comp.key()][0]) << R"( $\pm$ )"   << Round(jtot["Fit"][dist.key()][comp.key()][1]);
@@ -198,9 +238,21 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
     }//for overlap
 
     outfile << R"(\hline)" << endl;
-    outfile << R"(\end{longtable})" << endl;
+    outfile << R"(\end{longtable}})" << endl;
     outfile << R"(\end{center})" << endl;
   }
+  outfile << R"(\end{document})" << endl;
+
+  outfile.close();
+}//for country!
+
+void printProbabilityTableLatex(json jtot, json jbad, TString outputfile){
+  ofstream outfile(outputfile);
+  Quantity::printStyle = Quantity::LATEX;
+  printLatexHeader(outfile);
+
+  assert(jtot);
+  assert(jbad);
 
   outfile << R"(\newpage)" << endl;
   outfile << R"(\begin{center})" << endl;
@@ -219,14 +271,17 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
         if(!TString(comp.key()).Contains(constants::Order[i])) continue;
         if(TString(comp.key()).Contains("Nominal")) continue;
         if(TString(comp.key()).Contains("Peak")) continue;
-        TString multi = "";
+        TString multi = R"( \multirow{2}{*}{\shortstack{)";
         TString buff = TString(comp.key());
         buff.ReplaceAll("Sensor", "SplitSensor");
         buff.ReplaceAll("Gaussian_", "");
         buff.ReplaceAll("_max", "");
 
         if(constants::debug) cout << comp.key() << " " << dist.key() << endl;
-        multi = R"( \multirow{2}{*}{\shortstack{)";
+        if(buff.Contains("mid")){ 
+          buff = groupString(buff, "Sensor", "_", true);
+          multi = "";
+        }
         outfile << multi << translateString(buff, constants::latexMap, "_", ", ") << " & \t " 
 	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.020000"], 100000.) << " & \t " 
     	<< Round(jtot["Worst"]["Probability"][dist.key()][comp.key()]["0.200000"], 100000.) << R"( \\)" << endl;
@@ -236,7 +291,7 @@ void printToleranceTableLatex(json jtot, json jbad, TString outputfile){
   }//for overlap
 
   outfile << R"(\hline)" << endl;
-  outfile << R"(\end{longtable})" << endl;
+  outfile << R"(\end{longtable}})" << endl;
   outfile << R"(\end{center})" << endl;
 
   outfile << R"(\end{document})" << endl;
@@ -287,7 +342,10 @@ void RedoLatexTable(TString geo){
     json jtot;
     myBadFile >> jtot;
 
-    printToleranceTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + +"/" + geo + "_moduleTolerances.tex");
+    printProbabilityTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_Probability.tex");
+    printFitTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_Fit.tex");
+    printBadOverlapsTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_BadOverlaps.tex");
+    printBadComponentsTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_BadComponents.tex");
 }
 
 double GetWidthToA(double width){
