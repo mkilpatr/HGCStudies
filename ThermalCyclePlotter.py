@@ -11,6 +11,8 @@ parser.add_argument("-d", "--dir", dest="baseDir", default='.',
                          help="Base directory where files are located")
 parser.add_argument("-t", "--type", dest="type", default="",
                          help="Determine JSON file format depending on test type")
+parser.add_argument("-k", "--kind", dest="kind", default="Unconstrained warp",
+                         help="Determine JSON file format depending on test type")
 args = parser.parse_args()
 
 Dist = os.listdir(args.baseDir)
@@ -161,7 +163,8 @@ def readFileOGP(FILENAME):
 def readPandas(filename, type = "Unconstrained warp"):
   df = pd.read_csv(args.baseDir + "/" + filename)
  
-  label = filename.replace(".csv", "") + " " + type
+  label = filename.replace(".csv", "") + "_" + type.replace(" ", "_")
+ 
   j = {label: {"Channeltype": [], "Location": [], "Cycle": [], "Height": [], "Pad": [], "Channel": [], "Which": []}}
   h = cen = cor = edg = mid = pnt = 0
   height = 0.
@@ -208,10 +211,13 @@ for d in Dist:
     if os.path.isdir(args.baseDir + "/" + d): continue
     if "txt" in d or "csv" in d: 
         print(d)
-        fout = open(args.baseDir + "/" + d.replace("txt", "json").replace("csv", "json"), 'w')
+        name = d.replace(".txt", "").replace(".csv", "")
+        label = args.kind.replace(" ", "_")
+        if args.type == "Pandas": name += "_" + label
+        fout = open(args.baseDir + "/" + name + ".json", 'w')
         j = []
         if args.type == "Deformation": j = readFileOGP(d)
-        elif args.type == "Pandas": j = readPandas(d)
+        elif args.type == "Pandas": j = readPandas(d, args.kind)
         else: j = readFile(d)
 
         if args.type == "Deformation" or args.type == "Pandas": fout.write(json.dumps(j, sort_keys=False, indent=1))
