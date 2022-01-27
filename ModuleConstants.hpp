@@ -41,6 +41,7 @@ namespace constants {
 
   //TString whichGroup = "Kaptonplus"; //group by different Kapton widths
   //TString whichGroup = "PCBplus"; //group by different PCB widths
+  //TString whichGroup = "Baseplus"; //group by different Baseplate widths
   TString whichGroup = "Center"; //group by different center XY locations
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
@@ -49,17 +50,33 @@ namespace constants {
   //vector<TString> whichComp = {"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<TString> whichPlot = whichComp;//{"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<string> Dist = {
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus000_CenterYplus000_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus000_CenterYplus000_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor",
+               "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_midSensor",  "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_newSensor",
+               "Gaussian_Baseplus000_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_Baseplus000_CenterXplus100_CenterYplus030_newSensor",
+               "Gaussian_Baseplus000_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_Baseplus000_CenterXplus100_CenterYplus070_newSensor",
+               "Gaussian_Baseplus000_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_Baseplus000_CenterXplus150_CenterYplus050_newSensor",
+               "Gaussian_Baseplus025_CenterXplus000_CenterYplus000_midSensor",  "Gaussian_Baseplus025_CenterXplus000_CenterYplus000_newSensor",
+               "Gaussian_Baseplus025_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_Baseplus025_CenterXplus100_CenterYplus030_newSensor",
+               "Gaussian_Baseplus025_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_Baseplus025_CenterXplus100_CenterYplus070_newSensor",
+               "Gaussian_Baseplus025_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_Baseplus025_CenterXplus150_CenterYplus050_newSensor",
+               "Gaussian_Baseplus050_CenterXplus000_CenterYplus000_midSensor",  "Gaussian_Baseplus050_CenterXplus000_CenterYplus000_newSensor",
+               "Gaussian_Baseplus050_CenterXplus100_CenterYplus030_midSensor",  "Gaussian_Baseplus050_CenterXplus100_CenterYplus030_newSensor",
+               "Gaussian_Baseplus050_CenterXplus100_CenterYplus070_midSensor",  "Gaussian_Baseplus050_CenterXplus100_CenterYplus070_newSensor",
+               "Gaussian_Baseplus050_CenterXplus150_CenterYplus050_midSensor",  "Gaussian_Baseplus050_CenterXplus150_CenterYplus050_newSensor",
                            };
   
   const vector<TString> Order = {
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus000_CenterYplus000_newSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus000_CenterYplus000_midSensor",
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_newSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus030_midSensor",  
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_newSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus100_CenterYplus070_midSensor",  
-               "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_newSensor",  "Gaussian_PCBplus000_Kaptonplus000_senTokap185_CenterXplus150_CenterYplus050_midSensor",  
+               "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_newSensor",  "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_midSensor",
+               "Gaussian_Baseplus000_CenterXplus100_CenterYplus030_newSensor",  "Gaussian_Baseplus000_CenterXplus100_CenterYplus030_midSensor",
+               "Gaussian_Baseplus000_CenterXplus100_CenterYplus070_newSensor",  "Gaussian_Baseplus000_CenterXplus100_CenterYplus070_midSensor",
+               "Gaussian_Baseplus000_CenterXplus150_CenterYplus050_newSensor",  "Gaussian_Baseplus000_CenterXplus150_CenterYplus050_midSensor",
+               "Gaussian_Baseplus025_CenterXplus000_CenterYplus000_newSensor",  "Gaussian_Baseplus025_CenterXplus000_CenterYplus000_midSensor",
+               "Gaussian_Baseplus025_CenterXplus100_CenterYplus030_newSensor",  "Gaussian_Baseplus025_CenterXplus100_CenterYplus030_midSensor",
+               "Gaussian_Baseplus025_CenterXplus100_CenterYplus070_newSensor",  "Gaussian_Baseplus025_CenterXplus100_CenterYplus070_midSensor",
+               "Gaussian_Baseplus025_CenterXplus150_CenterYplus050_newSensor",  "Gaussian_Baseplus025_CenterXplus150_CenterYplus050_midSensor",
+               "Gaussian_Baseplus050_CenterXplus000_CenterYplus000_newSensor",  "Gaussian_Baseplus050_CenterXplus000_CenterYplus000_midSensor",
+               "Gaussian_Baseplus050_CenterXplus100_CenterYplus030_newSensor",  "Gaussian_Baseplus050_CenterXplus100_CenterYplus030_midSensor",
+               "Gaussian_Baseplus050_CenterXplus100_CenterYplus070_newSensor",  "Gaussian_Baseplus050_CenterXplus100_CenterYplus070_midSensor",
+               "Gaussian_Baseplus050_CenterXplus150_CenterYplus050_newSensor",  "Gaussian_Baseplus050_CenterXplus150_CenterYplus050_midSensor",
                            };
   
   map<TString, string> nameMap {
@@ -145,6 +162,7 @@ namespace constants {
     {"CenterYplus070", R"( +70) \mu m$)"},
     {"otherCenter", R"(center $= + 29 \mu m$)"},
     {"PCBplus000", R"(Nominal Hexaboard width)"},
+    {"Baseplus000", R"(Nominal Baseplate width)"},
     {"PCBminus25", R"(PCB - 25 $\mu m$)"},
     {"PCBplus25", R"(Nominal Hexaboard width + 25 $\mu m$)"},
     {"PCBminus50", R"(PCB - 50 $\mu m$)"},
@@ -160,6 +178,8 @@ namespace constants {
     {"PCBplus250", R"(Nominal Hexaboard width + 250 $\mu m$)"},
     {"PCBplus275", R"(Nominal Hexaboard width + 275 $\mu m$)"},
     {"PCBplus300", R"(Nominal Hexaboard width + 300 $\mu m$)"},
+    {"Baseplus025", R"(Nominal Baseplate width + 25 $\mu m$)"},
+    {"Baseplus050", R"(Nominal Baseplate width + 50 $\mu m$)"},
     {"Kaptonplus000", R"(Nominal)"},
     {"Kaptonminus25", R"(Kapton - 25 $\mu m$)"},
     {"Kaptonplus025", R"(Nominal Kapton width + 25 $\mu m$)"},
@@ -248,6 +268,7 @@ namespace constants {
     {"CenterYplus070", R"( +70) #mum)"},
     {"otherCenter", R"(center = + 29 #mum)"},
     {"PCBplus000", R"(Nominal Hexaboard width)"},
+    {"Baseplus000", R"(Nominal Baseplate width)"},
     {"PCBminus25", R"(PCB - 25 #mum)"},
     {"PCBplus25", R"(Nominal Hexaboard width + 25 #mum)"},
     {"PCBminus50", R"(PCB - 50 #mum)"},
@@ -263,6 +284,8 @@ namespace constants {
     {"PCBplus250", R"(Nominal Hexaboard width + 250 #mum)"},
     {"PCBplus275", R"(Nominal Hexaboard width + 275 #mum)"},
     {"PCBplus300", R"(Nominal Hexaboard width + 300 #mum)"},
+    {"Baseplus025", R"(Nominal Baseplate width + 25 #mum)"},
+    {"Baseplus050", R"(Nominal Baseplate width + 50 #mum)"},
     {"Kaptonplus000", R"(Nominal)"},
     {"Kaptonminus25", R"(Kapton - 25 #mum)"},
     {"Kaptonplus025", R"(Nominal Kapton width + 25 #mum)"},

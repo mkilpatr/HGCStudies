@@ -18,7 +18,7 @@ using namespace std;
 using namespace EstTools;
 using json = nlohmann::json;
 
-TString baseDir = "Gaussian_PCBplus000_Kaptonplus000_senTokap185_midSensor";
+TString baseDir = "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_midSensor";
 void print2DPlots(TH2Poly *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb", double width = 0.2);
 void print2DPlots(TH2D *hc, TString geometry, TString BinLatex = "", TString name = "testHoneycomb");
 void module2DTolerances();
@@ -32,7 +32,7 @@ void ModuleStudies(TString location = ""){
   constants::localDir = location;
   gROOT->SetBatch(1);
   //module2DTolerances();
-  module1DTolerances();
+  //module1DTolerances();
   moduleFitTolerances();
   RedoLatexTable();
 }
@@ -49,10 +49,13 @@ float Round(float var, float decimal = 1000.){
 
 TString groupString(TString name, TString remove, TString splitBy = "_", bool flip = false){
   auto vec = splitString(name, splitBy);
-  TString rlt = "";
+  TString rlt = "", swi = "";
   for (unsigned i=0; i<vec.size(); ++i){
     if(vec.at(i).Contains(remove)){
-      if(flip) return vec.at(i);
+      if(flip){ 
+        if (swi == "") swi = vec.at(i);
+        else swi = swi + splitBy + vec.at(i);
+      }
       else continue;
     }
     if (i==0){
@@ -61,7 +64,7 @@ TString groupString(TString name, TString remove, TString splitBy = "_", bool fl
       rlt = rlt + splitBy + vec.at(i);
     }
   }
-  return rlt;
+  return flip ? swi : rlt;
 }
 
 void printLatexHeader(ofstream& outfile){
@@ -349,7 +352,7 @@ void RedoLatexTable(TString geo){
     json jtot;
     myBadFile >> jtot;
 
-    //printProbabilityTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_Probability.tex");
+    printProbabilityTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_Probability.tex");
     printFitTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_Fit.tex");
     printBadOverlapsTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_BadOverlaps.tex");
     printBadComponentsTableLatex(jtot, jbad, constants::localDir+"/Test" + geo + + "/" + geo + "_BadComponents.tex");
@@ -971,28 +974,34 @@ void ExtendWidths(TString par, TString geo){
 
         if(par.Contains("CenterX")){
           TString buffer = par;
-          TString baseplate_err_X_str = buffer.ReplaceAll("CenterXplus", "");
-          baseplate_err_X_str.ReplaceAll("CenterXminus", "");
+          TString baseplate_err_X_str = buffer.ReplaceAll("CenterXplus", "").ReplaceAll("CenterXminus", "");
           float baseplate_err_X = baseplate_err_X_str.Atof()/1000;
          
-          if(par.Contains("plus"))  constants::baseplate_centerX += baseplate_err_X;
-          if(par.Contains("minus")) constants::baseplate_centerX -= baseplate_err_X;
+          if(par.Contains("plus"))  constants::baseplate_centerX -= baseplate_err_X;
+          if(par.Contains("minus")) constants::baseplate_centerX += baseplate_err_X;
         }
 
         if(par.Contains("CenterY")){
           TString buffer = par;
-          TString baseplate_err_Y_str = buffer.ReplaceAll("CenterYplus", "");
-          baseplate_err_Y_str.ReplaceAll("CenterYminus", "");
+          TString baseplate_err_Y_str = buffer.ReplaceAll("CenterYplus", "").ReplaceAll("CenterYminus", "");
           float baseplate_err_Y = baseplate_err_Y_str.Atof()/1000;
          
-          if(par.Contains("plus"))  constants::baseplate_centerY += baseplate_err_Y;
-          if(par.Contains("minus")) constants::baseplate_centerY -= baseplate_err_Y;
+          if(par.Contains("plus"))  constants::baseplate_centerY -= baseplate_err_Y;
+          if(par.Contains("minus")) constants::baseplate_centerY += baseplate_err_Y;
+        }
+
+        if(par.Contains("Base")){
+          TString buffer = par;
+          TString base_new_shift_str = buffer.ReplaceAll("Baseplus", "").ReplaceAll("Baseminus", "");
+          float base_new_shift = base_new_shift_str.Atof()/1000;
+         
+          if(par.Contains("plus"))  constants::baseplate_w += base_new_shift;
+          if(par.Contains("minus")) constants::baseplate_w -= base_new_shift;
         }
 
         if(par.Contains("PCB")){
           TString buffer = par;
-          TString pcb_new_shift_str = buffer.ReplaceAll("PCBplus", "");
-          pcb_new_shift_str.ReplaceAll("PCBminus", "");
+          TString pcb_new_shift_str = buffer.ReplaceAll("PCBplus", "").ReplaceAll("PCBminus", "");
           float pcb_new_shift = pcb_new_shift_str.Atof()/1000;
          
           if(par.Contains("plus"))  constants::pcb_w += pcb_new_shift;
@@ -1001,8 +1010,7 @@ void ExtendWidths(TString par, TString geo){
 
         if(par.Contains("Kapton")){
           TString buffer = par;
-          TString kapton_new_shift_str = buffer.ReplaceAll("Kaptonplus", "");
-          kapton_new_shift_str.ReplaceAll("Kaptonminus", "");
+          TString kapton_new_shift_str = buffer.ReplaceAll("Kaptonplus", "").ReplaceAll("Kaptonminus", "");
           float kapton_new_shift = kapton_new_shift_str.Atof()/1000;
          
           if(par.Contains("plus"))  constants::kapton_w += kapton_new_shift;
@@ -1581,7 +1589,7 @@ void moduleFitTolerances(){
           TH1D* hRebin = rebinAxis(h, stackType.Contains("pcb_bas_stack_hist") || stackType.Contains("sen_pcb_stack_hist"));
           if(swi.Contains("_integrate")) overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
           else overlap_1D_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
-          if(type.Contains(constants::whichGroup + "Xplus150")){
+          if(type.Contains(constants::whichGroup)){
             overlap_1D_integrate_minus_split.push_back(prefix+"_" + constants::compMap[stackType]+ "_" + group);
             overlap_1D_integrate_minus_kind.push_back(constants::compMap[stackType]);
           }
@@ -1677,7 +1685,7 @@ void moduleFitTolerances(){
 
     for(auto iK = 0; iK != (signed)overlap_1D_integrate_minus_split.size(); iK++){
       TString Split = overlap_1D_integrate_minus_split[iK];
-      TString Split_norm = Split.ReplaceAll("_backward", "").ReplaceAll("_forward", "");
+      TString Split_norm = overlap_1D_integrate_minus_split[iK].ReplaceAll("_backward", "").ReplaceAll("_forward", "");
       if(constants::debug) cout << Split << endl;
       vector<TH1*> plots;
       auto leg = prepLegends({}, {}, "P");
@@ -1685,8 +1693,8 @@ void moduleFitTolerances(){
       for(std::map<TString,TH1D*>::iterator iter = overlap_1D_integrate_minus.begin(); iter != overlap_1D_integrate_minus.end(); ++iter){
         groupName = groupString(iter->first, constants::whichGroup);
         if(!TString(groupName).Contains(Split)) continue;
-        //if(constants::debug) cout << groupName << " " << Split << endl;
-        //if(constants::debug) cout << iter->first << " " << iter->second->GetName() << endl;
+        if(constants::debug) cout << groupName << " " << Split << endl;
+        if(constants::debug) cout << iter->first << " " << iter->second->GetName() << endl;
         iter->second->SetLineWidth(3);
         addLegendEntry(leg, iter->second, translateString(groupString(iter->first, constants::whichGroup, "_", true), constants::plotMap, "_", ", "), "L");
         plots.push_back(iter->second);
