@@ -1557,6 +1557,7 @@ void moduleFitTolerances(){
     for(auto &type_str: constants::Dist){
       TString type = TString(type_str);
       gSystem->mkdir(constants::outputDir+"/"+type, true);
+      gSystem->mkdir(constants::outputDir+"/"+constants::whichGroup, true);
 
       ExtendWidths(type, geo);
 
@@ -1584,12 +1585,13 @@ void moduleFitTolerances(){
         if(!hName.Contains("_integrate")) overlap_1D.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         else                              overlap_1D_integrate.insert(pair<TString, TH1D*>(hName,(TH1D*)h));
         //BasToKap
-        if(hName.Contains(stackType) && type.Contains(constants::whichGroup)){
+        if(hName.Contains(stackType) && (type.Contains(constants::whichGroup) || prefix.Contains(constants::whichGroup))){
           TString kaptonType = TString(prefix+"_" + constants::compMap[stackType]+ "_" + type + "_" + hName);
           TH1D* hRebin = rebinAxis(h, stackType.Contains("pcb_bas_stack_hist") || stackType.Contains("sen_pcb_stack_hist"));
           if(swi.Contains("_integrate")) overlap_1D_integrate_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
           else overlap_1D_minus.insert(pair<TString, TH1D*>(kaptonType, (TH1D*)hRebin));
-          if(type.Contains(constants::whichGroup)){
+          if(type.Contains(constants::whichGroupSpecific) || prefix.Contains(constants::whichGroupSpecific)){
+            prefix = groupString(prefix, constants::whichGroupSpecific);
             overlap_1D_integrate_minus_split.push_back(prefix+"_" + constants::compMap[stackType]+ "_" + group);
             overlap_1D_integrate_minus_kind.push_back(constants::compMap[stackType]);
           }
@@ -1718,10 +1720,11 @@ void moduleFitTolerances(){
       addString.ReplaceAll("max_", "");
       std::function<void(TCanvas*)> plotextra = [&](TCanvas *c){ c->cd(); drawTLatexNDC(translateString(addString, constants::plotMap, "_", ", ", true), 0.22, 0.66); };
       TCanvas* diff = drawCompMatt(plots, leg, 0.00001, &plotextra, "hist", true, xMin, xMax, overlap_1D_integrate_minus_kind[iK].Contains("BasToKap"));
-      TString name = geo + "_" + Split + "_integral_diff_" + constants::whichGroup;
+      TString name = geo + "_" + Split + "_integral";
+      name.ReplaceAll("__", "_");
       diff->Update();
       diff->SetTitle(name);
-      diff->Print(constants::outputDir+"/"+name+".pdf");
+      diff->Print(constants::outputDir+"/"+constants::whichGroup+"/"+name+".pdf");
       //norm
       plots = {};
       leg = prepLegends({}, {}, "P");
@@ -1740,10 +1743,11 @@ void moduleFitTolerances(){
       //integral
       setLegend(leg, 1, 0.2, 0.7, 0.94, 0.87);
       diff = drawCompMatt(plots, leg, 0.1, &plotextra, "hist", true, xMin, xMax, overlap_1D_integrate_minus_kind[iK].Contains("BasToKap"));
-      name = geo + "_" + Split_norm + "_diff_" + constants::whichGroup;
+      name = geo + "_" + Split_norm;
+      name.ReplaceAll("__", "_");
       diff->Update();
       diff->SetTitle(name);
-      diff->Print(constants::outputDir+"/"+name+".pdf");
+      diff->Print(constants::outputDir+"/"+constants::whichGroup+"/"+name+".pdf");
     }// for all kapton widths
     file->Close();
 

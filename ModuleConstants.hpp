@@ -41,8 +41,12 @@ namespace constants {
 
   //TString whichGroup = "Kaptonplus"; //group by different Kapton widths
   //TString whichGroup = "PCBplus"; //group by different PCB widths
-  //TString whichGroup = "Baseplus"; //group by different Baseplate widths
-  TString whichGroup = "Center"; //group by different center XY locations
+  TString whichGroup = "Base", whichGroupSpecific = "Baseplus000"; //group by different Baseplate widths
+  //TString whichGroup = "Peak", whichGroupSpecific = "Peak1"; //group by different Peak
+  //TString whichGroup = "Center", whichGroupSpecific = "CenterXplus000"; //group by different center XY locations
+
+  //TString whichGroupSpecific = "Kaptonplus"; //group by different Kapton widths
+  //TString whichGroupSpecific = "PCBplus"; //group by different PCB widths
 
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
@@ -333,12 +337,12 @@ namespace constants {
     {"Fit", "Fit"},
     {"Worst", "Worst"},
     {"integrate", ""},
-    {"Peak1", ""},
-    {"Peak2", ""},
-    {"Peak3", ""},
-    {"Peak4", ""},
-    {"Peak5", ""},
-    {"Peak6", ""},
+    {"Peak1", "Peak 1"},
+    {"Peak2", "Peak 2"},
+    {"Peak3", "Peak 3"},
+    {"Peak4", "Peak 4"},
+    {"Peak5", "Peak 5"},
+    {"Peak6", "Peak 6"},
   };
 
 
