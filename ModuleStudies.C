@@ -33,7 +33,7 @@ void ModuleStudies(TString location = ""){
   gROOT->SetBatch(1);
   //module2DTolerances();
   //module1DTolerances();
-  moduleFitTolerances();
+  //moduleFitTolerances();
   RedoLatexTable();
 }
 
@@ -223,6 +223,9 @@ void printFitTableLatex(json jtot, json jbad, TString outputfile){
           TString multi = R"( \multirow{2}{*}{\shortstack{)";
           TString buff = TString(comp.key());
           buff.ReplaceAll("Sensor", "SplitSensor").ReplaceAll("Gaussian_", "");
+          TString s1 = groupString(buff, "Sensor", "_", true);
+          TString s2 = groupString(buff, "Peak", "_", true);
+          buff.ReplaceAll(s1 + "_" + s2, s2 + "_" + s1);
 
           if(constants::debug) cout << type.key() << " " << comp.key() << " " << dist.key() << endl;
           for(auto* s : {"new", "mid"}){
@@ -279,9 +282,10 @@ void printProbabilityTableLatex(json jtot, json jbad, TString outputfile){
         if(TString(comp.key()).Contains("mid")) continue;
         TString multi = R"( \multirow{2}{*}{\shortstack{)";
         TString buff = TString(comp.key());
-        buff.ReplaceAll("Sensor", "SplitSensor");
-        buff.ReplaceAll("Gaussian_", "");
-        buff.ReplaceAll("_max", "");
+        buff.ReplaceAll("Sensor", "SplitSensor").ReplaceAll("Gaussian_", "").ReplaceAll("_max", "");
+        TString s1 = groupString(buff, "Sensor", "_", true);
+        TString s2 = groupString(buff, "Peak", "_", true);
+        buff.ReplaceAll(s1 + "_" + s2, s2 + "_" + s1);
 
         if(constants::debug) cout << comp.key() << " " << dist.key() << endl;
         for(auto* s : {"new", "mid"}){
@@ -290,8 +294,9 @@ void printProbabilityTableLatex(json jtot, json jbad, TString outputfile){
             buff = groupString(comp_, "Sensor", "_", true);
             multi = " & ";
           }
+          string forProb = (TString(dist.key()).Contains("Sen to Base") || TString(dist.key()).Contains("PCB to Sen")) ? "0.000000" : "0.020000";
           outfile << multi << translateString(buff, constants::latexMap, "_", ", ") << " & \t " 
-	  << Round(jtot["Worst"]["Probability"][dist.key()][TString(comp_ + "_forward").Data()]["0.020000"], 100000.) << " & \t " 
+	  << Round(jtot["Worst"]["Probability"][dist.key()][TString(comp_ + "_forward").Data()][forProb], 100000.) << " & \t " 
     	  << Round(jtot["Worst"]["Probability"][dist.key()][TString(comp_ + "_backward").Data()]["0.200000"], 100000.) << R"( \\)" << endl;
         }
         outfile << R"(\hline)" << endl;
@@ -1600,12 +1605,12 @@ void moduleFitTolerances(){
 
       pair<double, double> r_cenXY = GetPolar("", constants::baseplate_centerX, constants::baseplate_centerY, 0., 0.);
       map<TString, double> centerXY = {
-        {"Peak1", r_cenXY.first*TMath::Cos(r_cenXY.second - 3*TMath::Pi()/3)},
-        {"Peak2", r_cenXY.first*TMath::Cos(r_cenXY.second - 4*TMath::Pi()/3)},
-        {"Peak3", r_cenXY.first*TMath::Cos(r_cenXY.second - 5*TMath::Pi()/3)},
-        {"Peak4", r_cenXY.first*TMath::Cos(r_cenXY.second - 0*TMath::Pi()/3)},
-        {"Peak5", r_cenXY.first*TMath::Cos(r_cenXY.second - 1*TMath::Pi()/3)},
-        {"Peak6", r_cenXY.first*TMath::Cos(r_cenXY.second - 2*TMath::Pi()/3)},
+        {"Peak1", r_cenXY.first*TMath::Cos(r_cenXY.second - 0*TMath::Pi()/3)},
+        {"Peak2", r_cenXY.first*TMath::Cos(r_cenXY.second - 1*TMath::Pi()/3)},
+        {"Peak3", r_cenXY.first*TMath::Cos(r_cenXY.second - 2*TMath::Pi()/3)},
+        {"Peak4", r_cenXY.first*TMath::Cos(r_cenXY.second - 3*TMath::Pi()/3)},
+        {"Peak5", r_cenXY.first*TMath::Cos(r_cenXY.second - 4*TMath::Pi()/3)},
+        {"Peak6", r_cenXY.first*TMath::Cos(r_cenXY.second - 5*TMath::Pi()/3)},
       };
 
       vector<double> pcb_nom, kapton_nom, baseplate_nom, sensor_nom, pcb_bond_nom, kapton_bond_nom, sensor_bond_nom, pcb_backside_nom, sensor_backside_nom, kapton_backside_nom, pcb_backside_x_nom, sensor_backside_x_nom, kapton_backside_x_nom;
