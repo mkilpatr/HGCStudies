@@ -11,6 +11,10 @@ parser.add_argument("-d", "--dir", dest="baseDir", default='.',
                          help="Base directory where files are located")
 parser.add_argument("-t", "--type", dest="type", default="",
                          help="Determine JSON file format depending on test type")
+parser.add_argument("-k", "--kind", dest="kind", default="Unconstrained warp",
+                         help="Determine JSON file format depending on test type")
+parser.add_argument("-l", "--hb_type", dest="hb_type", default="LD",
+                         help="hexaboard types [LD, HD]")
 args = parser.parse_args()
 
 Dist = os.listdir(args.baseDir)
@@ -26,19 +30,20 @@ PadCorner = [1, 18, 111, 197, 190, 81, 8, 95, 189, 191, 96, 9]
 PadEdge = [3, 39, 140, 195, 169, 52, 5, 65, 168, 193, 141, 29]
 PadMiddle = [22, 49, 124, 175, 158, 68, 24, 78, 152, 173, 129, 42]
 PadPoint = [45, 76, 122, 148, 131, 71]
-ChanCenter = [46]
-ChanCorner = [33, 61, 32, 57, 31, 70, 6, 33, 5, 29, 11, 35]
-ChanEdge   = [21, 67, 21, 68, 23, 67, 14, 29, 16, 66, 21, 29]
-ChanMiddle = [25, 57, 25, 50, 34, 57, 10, 71, 9, 59, 15, 59]
-ChanPoint  = [36, 52, 40, 48, 36, 52]
+if args.hb_type == "HD":
+    PadCenter = [228]
+    PadPoint = [100, 164, 281, 339, 272, 155]
+
 if args.type == "Pandas": 
-    PadCorner = [8, 95, 189, 191, 96, 9, 1, 18, 111, 197, 190, 81]
-    ChanCorner = [6, 33, 5, 29, 11, 35, 33, 61, 32, 57, 31, 70]
+    if args.hb_type == "LD":
+        PadCorner = [198, 190, 180, 96, 81, 9, 1, 8, 18, 95, 111, 189]
+    elif args.hb_type == "HD":
+        PadCorner = [444, 432, 418, 217, 193, 13, 1, 12, 25, 216, 240, 431]
 
 def readFile(FILENAME):
     file = open(args.baseDir + "/" + FILENAME, 'r')
     label = FILENAME.replace(".csv", "")
-    j = {label: {"Channeltype": [], "Location": [], "Cycle": [], "Height": [], "Pad": [], "Channel": [], "Which": []}}
+    j = {label: {"Cycle": [], "Height": [], "Pad": []}}
     h = c = i = 0
     cen = cor = edg = mid = pnt = 0
     while (True):
@@ -49,39 +54,25 @@ def readFile(FILENAME):
         for s in ss:
             if (s == ""): continue
             height = float(s)
-            j[label]["Channeltype"].append(0)
-            j[label]["Location"].append(ModuleHeight[h])
             j[label]["Cycle"].append(ModuleCycle[c])
             j[label]["Height"].append(height)
             if(i == 0):
                 j[label]["Pad"].append(PadCorner[cor])
-                j[label]["Channel"].append(ChanCorner[cor])
-                j[label]["Which"].append(cor)
                 cor+=1
             elif(i == 1 or i == 2):
                 j[label]["Pad"].append(PadEdge[edg])
-                j[label]["Channel"].append(ChanEdge[edg])
-                j[label]["Which"].append(edg)
                 edg+=1
             elif(i == 3):
                 j[label]["Pad"].append(PadCorner[cor])
-                j[label]["Channel"].append(ChanCorner[cor])
-                j[label]["Which"].append(cor)
                 cor+=1
             elif(i == 4 or i == 5):
                 j[label]["Pad"].append(PadMiddle[mid])
-                j[label]["Channel"].append(ChanMiddle[mid])
-                j[label]["Which"].append(mid)
                 mid+=1
             elif(i == 6):
                 j[label]["Pad"].append(PadPoint[pnt])
-                j[label]["Channel"].append(ChanPoint[pnt])
-                j[label]["Which"].append(pnt)
                 pnt+=1
             elif(i == 7):
                 j[label]["Pad"].append(PadCenter[cen])
-                j[label]["Channel"].append(ChanCenter[cen])
-                j[label]["Which"].append(cen)
                 cen+=1
             
         i+=1
@@ -99,19 +90,20 @@ indexCorner = [3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20]
 indexEdge = [4, 7, 10, 13, 16, 19]
 indexPoint = [21, 22, 23, 24, 25, 26]
 OGPPadEdge = [4, 51, 155, 194, 156, 40]
-OGPChanEdge   = [22, 64, 22, 71, 26, 64]
 if args.type == "Pandas": 
     indexCorner = [0, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17]
     indexEdge = [1, 4, 7, 10, 13, 16]
     indexPoint = [18, 19, 20, 21, 22, 23]
-    OGPPadEdge = [194, 156, 40, 4, 51, 155]
-    OGPChanEdge   = [71, 26, 64, 22, 64, 22]
+    if args.hb_type == "LD":
+        OGPPadEdge = [194, 156, 40, 4, 51, 155]
+    elif args.hb_type == "HD":
+        OGPPadEdge = [438, 330, 91, 7, 108, 348]
   
 
 def readFileOGP(FILENAME):
   file = open(args.baseDir + "/" + FILENAME, 'r')
   label = FILENAME.replace(".txt", "")
-  j = {label: {"Channeltype": [], "Location": [], "Cycle": [], "Height": [], "Pad": [], "Channel": [], "Which": []}}
+  j = {label: {"Cycle": [], "Height": [], "Pad": []}}
   h = 0
   i = 3
   cen = cor = edg = mid = pnt = 0
@@ -125,29 +117,19 @@ def readFileOGP(FILENAME):
       height = float(s.group())
 
       if(bool(s)):
-        j[label]["Channeltype"].append(0)
-        j[label]["Location"].append(ModuleHeight[h])
         j[label]["Cycle"].append(ModuleCycle[0])
         j[label]["Height"].append(height)
         if(i in indexCorner):
           j[label]["Pad"].append(PadCorner[cor])
-          j[label]["Channel"].append(ChanCorner[cor])
-          j[label]["Which"].append(cor)
           cor+=1
         elif(i in indexEdge):
           j[label]["Pad"].append(OGPPadEdge[edg])
-          j[label]["Channel"].append(OGPChanEdge[edg])
-          j[label]["Which"].append(edg)
           edg+=1
         elif(i in indexPoint):
           j[label]["Pad"].append(PadPoint[pnt])
-          j[label]["Channel"].append(ChanPoint[pnt])
-          j[label]["Which"].append(pnt)
           pnt+=1
         elif(i == 27):
           j[label]["Pad"].append(PadCenter[cen])
-          j[label]["Channel"].append(ChanCenter[cen])
-          j[label]["Which"].append(cen)
           cen+=1
 
       i+=1
@@ -161,45 +143,37 @@ def readFileOGP(FILENAME):
 def readPandas(filename, type = "Unconstrained warp"):
   df = pd.read_csv(args.baseDir + "/" + filename)
  
-  label = filename.replace(".csv", "") + " " + type
-  j = {label: {"Channeltype": [], "Location": [], "Cycle": [], "Height": [], "Pad": [], "Channel": [], "Which": []}}
+  label = filename.replace(".csv", "") + "_" + type.replace(" ", "_")
+ 
+  j = {label: {"Cycle": [], "Height": [], "Pad": []}}
   h = cen = cor = edg = mid = pnt = 0
   height = 0.
 
   for i in range(0,df[type].size):
       height = df[type][i]
+      point = int(df["#"][i]) - 1
+      if pd.isna(height) or str(height) == " ": height = float(-999.)
 
-      j[label]["Channeltype"].append(0)
-      j[label]["Location"].append(ModuleHeight[h])
       j[label]["Cycle"].append(ModuleCycle[0])
-      j[label]["Height"].append(height)
+      j[label]["Height"].append(float(height))
       if(i in indexCorner):
         j[label]["Pad"].append(PadCorner[cor])
-        j[label]["Channel"].append(ChanCorner[cor])
-        j[label]["Which"].append(cor)
         cor+=1
       elif(i in indexEdge):
         j[label]["Pad"].append(OGPPadEdge[edg])
-        j[label]["Channel"].append(OGPChanEdge[edg])
-        j[label]["Which"].append(edg)
         edg+=1
       elif(i in indexPoint):
         j[label]["Pad"].append(PadPoint[pnt])
-        j[label]["Channel"].append(ChanPoint[pnt])
-        j[label]["Which"].append(pnt)
         pnt+=1
       elif(i == 24):
         j[label]["Pad"].append(PadCenter[cen])
-        j[label]["Channel"].append(ChanCenter[cen])
-        j[label]["Which"].append(cen)
         cen+=1
         break
 
-      i+=1
-      if(i in indexCorner): h = 0
-      elif(i in indexEdge): h = 1
-      elif(i in indexPoint): h = 3
-      elif(i == 24): h = 4
+      if(point in indexCorner): h = 0
+      elif(point in indexEdge): h = 1
+      elif(point in indexPoint): h = 3
+      elif(point == 24): h = 4
 
   return j
   
@@ -208,10 +182,13 @@ for d in Dist:
     if os.path.isdir(args.baseDir + "/" + d): continue
     if "txt" in d or "csv" in d: 
         print(d)
-        fout = open(args.baseDir + "/" + d.replace("txt", "json").replace("csv", "json"), 'w')
+        name = d.replace(".txt", "").replace(".csv", "")
+        label = args.kind.replace(" ", "_")
+        if args.type == "Pandas": name += "_" + label
+        fout = open(args.baseDir + "/" + name + ".json", 'w')
         j = []
         if args.type == "Deformation": j = readFileOGP(d)
-        elif args.type == "Pandas": j = readPandas(d)
+        elif args.type == "Pandas": j = readPandas(d, args.kind)
         else: j = readFile(d)
 
         if args.type == "Deformation" or args.type == "Pandas": fout.write(json.dumps(j, sort_keys=False, indent=1))
