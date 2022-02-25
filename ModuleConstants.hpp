@@ -39,20 +39,31 @@ namespace constants {
   //     if(geo == "Five" || geo == "Semi") nPeaks = 3;
   //else if(geo == "Half" || geo == "Three") nPeaks = 2;
 
-  //TString whichGroup = "Kaptonplus"; //group by different Kapton widths
-  //TString whichGroup = "PCBplus"; //group by different PCB widths
+  /*
+ *The plots can be grouped in the final output by a few different identifiers.
+ */
+  //TString whichGroup = "Kaptonplus", whichGroupSpecific = "Kaptonplus000"; //group by different Kapton widths
+  //TString whichGroup = "PCBplus", whichGroupSpecific = "PCBplus000"; //group by different PCB widths
   //TString whichGroup = "Base", whichGroupSpecific = "Baseplus000"; //group by different Baseplate widths
   //TString whichGroup = "Peak", whichGroupSpecific = "Peak1"; //group by different Peak
   TString whichGroup = "Center", whichGroupSpecific = "CenterXplus000"; //group by different center XY locations
 
-  //TString whichGroupSpecific = "Kaptonplus"; //group by different Kapton widths
-  //TString whichGroupSpecific = "PCBplus"; //group by different PCB widths
-
+  //The methods to simulate 5 different geometries have already been included. The actual sizes just use geometry to get the component width from a full module. Need to change to be actual width whenever that happens.
   //vector<string> Geometry = {"Full", "Five", "Semi", "Half", "Three"};
   vector<string> Geometry = {"Full"};
   vector<TString> whichComp = {"sen_kap_stack_hist", "sen_bas_stack_hist", "bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist", "pcb_kap_stack_hist", "kap_pcb_hist", "sen_pcb_hist", "sen_pcb_kap_x_hist", "sen_pcb_kap_y_hist"};
   //vector<TString> whichComp = {"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
   vector<TString> whichPlot = whichComp;//{"bas_kap_stack_hist", "bas_kap_sen_stack_hist", "sen_pcb_stack_hist", "pcb_bas_stack_hist"};
+
+  /*
+ * Definition of the components with variations depending on what you want to change.
+ * Gaussian_Baseplus025_CenterXplus100_CenterYplus070_midSensor
+ * This string is parsed and split by the "_" deliminator. Each of the values correspond to changing parameters. 
+ * The "Gaussian" means to use a gaussian distribution for the random sampling. 
+ * The Baseplus025 means change the baseplate total width to Nominal baseplate width + 25 um. This can also be used with a "minus" and "PCB" or "Kapton" instead of the baseplate.
+ * The CenterXplus100 means change the center of the baseplate pin to the + 100 um along the X axis. There is a corresponding value for the Y center point.
+ * The midSensor signifies the placement tolerance of the sensor. "mid" means placement tolerance of (x,Y) = (100, 50) um and the "new" means (x,Y) = (50, 50) um.
+ */
   vector<string> Dist = {
                "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_midSensor",  "Gaussian_Baseplus000_CenterXplus000_CenterYplus000_newSensor",
                "Gaussian_Baseplus000_CenterXplus050_CenterYplus050_midSensor",  "Gaussian_Baseplus000_CenterXplus050_CenterYplus050_newSensor",
