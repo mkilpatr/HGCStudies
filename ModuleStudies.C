@@ -31,9 +31,15 @@ void ModuleStudies(TString location = ""){
   constants::eosDir += location + "/";
   constants::localDir = location;
   gROOT->SetBatch(1);
-  //module2DTolerances();
-  //module1DTolerances();
-  //moduleFitTolerances();
+  module2DTolerances();
+}
+
+void ModuleAnalysis(TString location = ""){
+  constants::eosDir += location + "/";
+  constants::localDir = location;
+  gROOT->SetBatch(1);
+  module1DTolerances();
+  moduleFitTolerances();
   RedoLatexTable();
 }
 
